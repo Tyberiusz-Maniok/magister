@@ -9,6 +9,7 @@ class Tensor {
         int* strides;
         int rank;
         bool requires_grad;
+        // Tensor& grad;
 
         Tensor(float* data, int* shape, int rank, bool requires_grad=true);
         Tensor(float* data, int* shape, int rank, int size, bool requires_grad=true);

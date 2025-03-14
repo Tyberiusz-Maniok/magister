@@ -1,11 +1,13 @@
+#pragma once
 #include "tensor.h"
 
 class Layer {
-    // public:
+    public:
     //     Tensor& weights;
 
-    Layer();
-    ~Layer();
+        Layer();
+        ~Layer();
 
-    
+        Tensor& forward(const Tensor& x);
+        void backward();
 };

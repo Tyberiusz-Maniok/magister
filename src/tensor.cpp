@@ -126,7 +126,7 @@ float Tensor::dot(const Tensor& other) {
 Tensor& Tensor::matmul(const Tensor& other) {
     int m = *(this->shape);
     int k = *(this->shape+1);
-    int n = *(other.data+1);
+    int n = *(other.shape+1);
     float* result = (float*) mkl_malloc(m * n * sizeof(float), MALLOC_ALIGN);
 
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, this->data, k, other.data, n, 0, result, n);
@@ -146,7 +146,7 @@ static Tensor& zeros(int* shape, int rank) {
 
 static Tensor& random(int* shape, int rank, float low, float high) {
     VSLStreamStatePtr stream;
-    vslNewStream( &stream, VSL_BRNG_MT19937, 777); //TODO: properly set seed
+    vslNewStream(&stream, VSL_BRNG_MT19937, 777); //TODO: properly set seed
 
     int size = accum_size(shape, rank);
     float* data = (float*) mkl_malloc(size * sizeof(float), MALLOC_ALIGN);
