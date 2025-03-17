@@ -1,6 +1,8 @@
 #include "rng.h"
 #include <mkl.h>
 
+using namespace lamp;
+
 RandomGen::RandomGen(int seed) {
     vslNewStream(&stream, VSL_BRNG_MT19937, seed);
 }

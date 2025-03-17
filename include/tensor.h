@@ -2,6 +2,8 @@
 #include <valarray>
 #include "rng.h"
 
+namespace lamp {
+
 class Tensor {
     public:
         float* data;
@@ -47,3 +49,5 @@ class Tensor {
         static Tensor& zeros(int* shape, int rank);
         static Tensor& random(int* shape, int rank, RandomGen& rng, float low = -1, float high = 1);
 };
+
+}
