@@ -1,20 +1,22 @@
 #pragma once
 #include "layer.h"
+#include "tensor.h"
 #include <functional>
-#define noop
+#include "rng.h"
 
-// typedef void (*mt_func)(Tensor&);
-typedef std::function<void(Tensor&)> mt_func;
+typedef std::function<void(Tensor&)> activ_fn;
 
 class Linear : Layer {
     public:
-        Tensor& weights;
-        Tensor& bias;
-        mt_func activation_fn;
+        Tensor* weights;
+        Tensor* bias;
+        activ_fn activation_fn;
 
         // Linear(std::function<void(const Tensor&)> mt_func=identity);
-        Linear(mt_func activation_fn=identity);
+        Linear(int input, int output, RandomGen& rng, activation_fn=identity);
         ~Linear();
 
         void identity(Tensor& x) {};
+
+        Tensor& forward(const Tensor& x);
 };

@@ -9,5 +9,5 @@ class RandomGen {
         RandomGen(int seed);
         ~RandomGen();
 
-        void populate(int size, float* data, float low, float high);
+        void populate(int size, float* data, float low = -1, float high = 1);
 };

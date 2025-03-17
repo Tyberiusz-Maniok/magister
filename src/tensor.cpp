@@ -144,15 +144,16 @@ static Tensor& zeros(int* shape, int rank) {
     return *(new Tensor(data, shape, rank, size));
 }
 
-static Tensor& random(int* shape, int rank, float low, float high) {
-    VSLStreamStatePtr stream;
-    vslNewStream(&stream, VSL_BRNG_MT19937, 777); //TODO: properly set seed
+static Tensor& random(int* shape, int rank, RandomGen& rng, float low, float high) {
+    // VSLStreamStatePtr stream;
+    // vslNewStream(&stream, VSL_BRNG_MT19937, 777); //TODO: properly set seed
 
     int size = accum_size(shape, rank);
     float* data = (float*) mkl_malloc(size * sizeof(float), MALLOC_ALIGN);
-    vsRngUniform(VSL_RNG_METHOD_UNIFORM_STD, stream, size, data, low, high);
+    rng.populate(size, data, low, high);
+    // vsRngUniform(VSL_RNG_METHOD_UNIFORM_STD, stream, size, data, low, high);
 
-    vslDeleteStream(&stream);
+    // vslDeleteStream(&stream);
 
     return *(new Tensor(data, shape, rank, size));
 }

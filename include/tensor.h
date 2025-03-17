@@ -1,5 +1,6 @@
 #pragma once
 #include <valarray>
+#include "rng.h"
 
 class Tensor {
     public:
@@ -44,5 +45,5 @@ class Tensor {
         int* shift_slice(const Tensor& tensor, int axis, int shift);
     
         static Tensor& zeros(int* shape, int rank);
-        static Tensor& random(int* shape, int rank, float low = -1, float high = 1);
+        static Tensor& random(int* shape, int rank, RandomGen& rng, float low = -1, float high = 1);
 };
