@@ -40,7 +40,7 @@ Tensor::Tensor(float* data, int* shape, int rank, int size, bool requires_grad) 
     set_strides(shape, this->strides, rank);
 }
 
-Tensor::Tensor(const Tensor& other) : size(other.size), rank(other.rank), requires_grad(other.requires_grad){
+Tensor::Tensor(Tensor& other) : size(other.size), rank(other.rank), requires_grad(other.requires_grad){
     this->data = (float*) mkl_malloc(other.size * sizeof(float), MALLOC_ALIGN);
     std::memcpy(other.data, this->data, other.size * sizeof(float));
 
@@ -57,35 +57,35 @@ Tensor::~Tensor() {
     mkl_free(this->strides);
 }
 
-Tensor& Tensor::operator=(const Tensor& other) {
+Tensor& Tensor::operator=(Tensor& other) {
     return *(new Tensor(other));
 }
 
-Tensor& Tensor::operator+(const Tensor& other) {
+Tensor& Tensor::operator+(Tensor& other) {
     Tensor& result = *(new Tensor(*this));
     result += other;
     return result;
 }
 
-Tensor& Tensor::operator-(const Tensor& other) {
+Tensor& Tensor::operator-(Tensor& other) {
     Tensor& result = *(new Tensor(*this));
     result -= other;
     return result;
 }
 
-Tensor& Tensor::operator*(const Tensor& other) {
+Tensor& Tensor::operator*(Tensor& other) {
     Tensor& result = *(new Tensor(*this));
     result *= other;
     return result;
 }
 
-Tensor& Tensor::operator/(const Tensor& other) {
+Tensor& Tensor::operator/(Tensor& other) {
     Tensor& result = *(new Tensor(*this));
     result /= other;
     return result;
 }
 
-Tensor& Tensor::operator+=(const Tensor& other) {
+Tensor& Tensor::operator+=(Tensor& other) {
     #pragma omp parallel for
     for (int i=0; i < this->size; i++) {
         *(this->data+i) += *(other.data+i);
@@ -93,7 +93,7 @@ Tensor& Tensor::operator+=(const Tensor& other) {
     return *this;
 }
 
-Tensor& Tensor::operator-=(const Tensor& other) {
+Tensor& Tensor::operator-=(Tensor& other) {
     #pragma omp parallel for
     for (int i=0; i < this->size; i++) {
         *(this->data+i) -= *(other.data+i);
@@ -101,7 +101,7 @@ Tensor& Tensor::operator-=(const Tensor& other) {
     return *this;
 }
 
-Tensor& Tensor::operator*=(const Tensor& other) {
+Tensor& Tensor::operator*=(Tensor& other) {
     #pragma omp parallel for
     for (int i=0; i < this->size; i++) {
         *(this->data+i) *= *(other.data+i);
@@ -109,7 +109,7 @@ Tensor& Tensor::operator*=(const Tensor& other) {
     return *this;
 }
 
-Tensor& Tensor::operator/=(const Tensor& other) {
+Tensor& Tensor::operator/=(Tensor& other) {
     #pragma omp parallel for
     for (int i=0; i < this->size; i++) {
         *(this->data+i) /= *(other.data+i);
@@ -121,11 +121,11 @@ float Tensor::operator[](int idx) {
     return *(this->data+idx);
 }
 
-float Tensor::dot(const Tensor& other) {
+float Tensor::dot(Tensor& other) {
     return cblas_sdot(this->size, this->data, 1, other.data, 1);
 }
 
-Tensor& Tensor::matmul(const Tensor& other) {
+Tensor& Tensor::matmul(Tensor& other) {
     int m = *(this->shape);
     int k = *(this->shape+1);
     int n = *(other.shape+1);

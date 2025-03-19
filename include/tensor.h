@@ -16,27 +16,27 @@ class Tensor {
 
         Tensor(float* data, int* shape, int rank, bool requires_grad=true);
         Tensor(float* data, int* shape, int rank, int size, bool requires_grad=true);
-        Tensor(const Tensor& other);
+        Tensor(Tensor& other);
         ~Tensor();
 
-        Tensor& operator=(const Tensor& other);
+        Tensor& operator=(Tensor& other);
 
-        Tensor& operator+(const Tensor& other);
-        Tensor& operator-(const Tensor& other);
-        Tensor& operator*(const Tensor& other);
-        Tensor& operator/(const Tensor& other);
+        Tensor& operator+(Tensor& other);
+        Tensor& operator-(Tensor& other);
+        Tensor& operator*(Tensor& other);
+        Tensor& operator/(Tensor& other);
 
-        Tensor& operator+=(const Tensor& other);
-        Tensor& operator-=(const Tensor& other);
-        Tensor& operator*=(const Tensor& other);
-        Tensor& operator/=(const Tensor& other);
+        Tensor& operator+=(Tensor& other);
+        Tensor& operator-=(Tensor& other);
+        Tensor& operator*=(Tensor& other);
+        Tensor& operator/=(Tensor& other);
 
         float operator[](int idx);
         Tensor operator[](std::slice idx);
         Tensor operator[](std::gslice idx);
 
-        float dot(const Tensor& other);
-        Tensor& matmul(const Tensor& other);
+        float dot(Tensor& other);
+        Tensor& matmul(Tensor& other);
         Tensor tranpose(int ax1, int ax2);
         Tensor stack();
         Tensor unstack(int* axes);
@@ -44,7 +44,7 @@ class Tensor {
         Tensor backwards();
         Tensor flip();
 
-        int* shift_slice(const Tensor& tensor, int axis, int shift);
+        int* shift_slice(Tensor& tensor, int axis, int shift);
     
         static Tensor& zeros(int* shape, int rank);
         static Tensor& random(int* shape, int rank, RandomGen& rng, float low = -1, float high = 1);

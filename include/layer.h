@@ -10,8 +10,9 @@ class Layer {
         Layer(){};
         ~Layer(){};
 
-        Tensor& forward(const Tensor& x);
-        void backward();
+        virtual Tensor& forward(Tensor& x)=0;
+        virtual Tensor& sanity_check(Tensor& x)=0;
+        virtual void backward()=0;
 };
 
 }
