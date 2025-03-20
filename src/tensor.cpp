@@ -139,23 +139,17 @@ Tensor& Tensor::matmul(Tensor& other) {
     return *(new Tensor(result, shape, 2, m*n));
 }
 
-Tensor& Tensor::zeros(int* shape, int rank) {
+Tensor* Tensor::zeros(int* shape, int rank) {
     int size = accum_size(shape, rank);
     float* data = (float*) mkl_calloc(size, sizeof(float), MALLOC_ALIGN);
 
-    return *(new Tensor(data, shape, rank, size));
+    return new Tensor(data, shape, rank, size);
 }
 
-Tensor& Tensor::random(int* shape, int rank, RandomGen& rng, float low, float high) {
-    // VSLStreamStatePtr stream;
-    // vslNewStream(&stream, VSL_BRNG_MT19937, 777); //TODO: properly set seed
-
+Tensor* Tensor::random(int* shape, int rank, RandomGen& rng, float low, float high) {
     int size = accum_size(shape, rank);
     float* data = (float*) mkl_malloc(size * sizeof(float), MALLOC_ALIGN);
     rng.populate(size, data, low, high);
-    // vsRngUniform(VSL_RNG_METHOD_UNIFORM_STD, stream, size, data, low, high);
 
-    // vslDeleteStream(&stream);
-
-    return *(new Tensor(data, shape, rank, size));
+    return new Tensor(data, shape, rank, size);
 }

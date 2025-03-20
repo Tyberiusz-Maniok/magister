@@ -6,8 +6,6 @@
 
 namespace lamp {
 
-typedef std::function<void(Tensor&)> activ_fn;
-
 class Linear : Layer {
     public:
         Tensor* weights;
