@@ -5,6 +5,8 @@
 #include <mkl_vsl.h>
 #include <cstring>
 
+#include <cstdio>
+
 #define MALLOC_ALIGN 32
 
 using namespace lamp;
@@ -19,7 +21,7 @@ int accum_size(int* shape, int rank) {
 
 void set_strides(int* shape, int* strides, int rank) {
     int stride = 1;
-    for (int i = rank - 1; i >= 0; i++) {
+    for (int i = rank - 1; i >= 0; i--) {
         *(strides + i) = stride;
         stride *= *(shape + i);
     }
@@ -139,17 +141,17 @@ Tensor& Tensor::matmul(Tensor& other) {
     return *(new Tensor(result, shape, 2, m*n));
 }
 
-Tensor* Tensor::zeros(int* shape, int rank) {
-    int size = accum_size(shape, rank);
-    float* data = (float*) mkl_calloc(size, sizeof(float), MALLOC_ALIGN);
+Tensor* Tensor::zeros(int* shape_, int rank_) {
+    int size_ = accum_size(shape_, rank_);
+    float* data_ = (float*) mkl_calloc(size_, sizeof(float), MALLOC_ALIGN);
 
-    return new Tensor(data, shape, rank, size);
+    return new Tensor(data_, shape_, rank_, size_);
 }
 
-Tensor* Tensor::random(int* shape, int rank, RandomGen& rng, float low, float high) {
-    int size = accum_size(shape, rank);
-    float* data = (float*) mkl_malloc(size * sizeof(float), MALLOC_ALIGN);
-    rng.populate(size, data, low, high);
+Tensor* Tensor::random(int* shape_, int rank_, RandomGen* rng, float low, float high) {
+    int size_ = accum_size(shape_, rank_);
+    float* data_ = (float*) mkl_malloc(size_ * sizeof(float), MALLOC_ALIGN);
+    rng->populate(size_, data_, low, high);
 
-    return new Tensor(data, shape, rank, size);
+    return new Tensor(data_, shape_, rank_, size_);
 }

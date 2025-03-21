@@ -46,8 +46,8 @@ class Tensor {
 
         int* shift_slice(Tensor& tensor, int axis, int shift);
     
-        static Tensor* zeros(int* shape, int rank);
-        static Tensor* random(int* shape, int rank, RandomGen& rng, float low = -1, float high = 1);
+        static Tensor* zeros(int* shape_, int rank_);
+        static Tensor* random(int* shape_, int rank_, RandomGen* rng, float low = -1, float high = 1);
 };
 
 }

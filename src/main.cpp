@@ -31,13 +31,30 @@ int main() {
 
     RandomGen* r = new RandomGen(111);
 
-    int* a = (int*) mkl_malloc(2* 4, 64);
-    *a = 3;
-    *(a+1) = 4;
 
-    Tensor* b = Tensor::random(a, 2, *r);
+    int* size1 = (int*) mkl_malloc(2* 4, 64);
+    *size1 = 3;
+    *(size1+1) = 4;
+
+    int* size2 = (int*) mkl_malloc(2*4, 64);
+    *size2 = 4;
+    *(size2+1) = 5;
     
-    mkl_free(a);
+    // Tensor* a = new Tensor(d, size1, 2);
+    Tensor* a = Tensor::random(size1, 2, r);
+    // Tensor* a = Tensor::zeros(size1, 2);
+    Tensor* b = Tensor::random(size2, 2, r);
+
+
+
+
+
+    Tensor& c = a->matmul(*b);
+    
+    // mkl_free(d);
     delete r;
+    delete a;
+    delete b;
+    delete &c;
     return 0;
 }
