@@ -41,9 +41,9 @@ int main() {
     *(size2+1) = 5;
     
     // Tensor* a = new Tensor(d, size1, 2);
-    Tensor* a = Tensor::random(size1, 2, r);
+    Tensor* a = Tensor::random(size1, 2, *r);
     // Tensor* a = Tensor::zeros(size1, 2);
-    Tensor* b = Tensor::random(size2, 2, r);
+    Tensor* b = Tensor::random(size2, 2, *r);
 
 
 

@@ -1,7 +1,6 @@
 #pragma once
 #include "layer.h"
 #include "tensor.h"
-#include <functional>
 #include "rng.h"
 
 namespace lamp {
@@ -12,14 +11,12 @@ class Linear : Layer {
         Tensor* bias;
         activ_fn activation_fn;
 
-        Linear(int input, int output, RandomGen* rng, activ_fn activation_fn=[](Tensor& x){});
+        Linear(int input, int output, RandomGen& rng, activ_fn activation_fn=identity);
         ~Linear();
 
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;
         void backward() override;
-
-        void identity(Tensor& x) {};
 };
 
 }

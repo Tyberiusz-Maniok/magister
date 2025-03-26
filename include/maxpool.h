@@ -1,14 +1,14 @@
 #pragma once
-#include "tensor.h"
-#include "activations.h"
+#include "layer"
 
 namespace lamp {
 
-class Layer {
+class MaxPool : Layer {
     public:
-        Layer(){};
-        ~Layer(){};
+        int kernel;
 
+        MaxPool(int kernel);
+        
         virtual Tensor& forward(Tensor& x)=0;
         virtual Tensor& sanity_check(Tensor& x)=0;
         virtual void backward()=0;

@@ -4,7 +4,7 @@
 
 using namespace lamp;
 
-Linear::Linear(int input, int output, RandomGen* rng, activ_fn activation_fn) : activation_fn(activation_fn) {
+Linear::Linear(int input, int output, RandomGen& rng, activ_fn activation_fn) : activation_fn(activation_fn) {
     int* shape = (int*) mkl_malloc(2 * sizeof(int), 32);
     *(shape) = input;
     *(shape+1) = output;
