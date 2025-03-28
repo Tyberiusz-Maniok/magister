@@ -1,9 +1,11 @@
 #include "conv2d.h"
 #include <mkl.h>
+#include <omp.h>
 
 using namespace lamp;
 
-Conv2d::Conv2d(int input, int output, int kernel, RandomGen& rng, activ_fn activation_fn) : activation_fn(activation_fn) {
+Conv2d::Conv2d(int input, int output, int kernel, RandomGen& rng, activ_fn activation_fn) : activation_fn(activation_fn),
+    k(kernel), stride(1) {
     int* shape = (int*) mkl_malloc(4 * sizeof(int), 32);
     *(shape) = output;
     *(shape+1) = input;
@@ -14,6 +16,46 @@ Conv2d::Conv2d(int input, int output, int kernel, RandomGen& rng, activ_fn activ
 
 Conv2d::~Conv2d() {
     delete this->filters;
+}
+
+Tensor& Conv2d::im2col(Tensor& x) {
+    int N = *(x.shape);
+    int C = *(x.shape+1);
+    int H = *(x.shape+2);
+    int W = *(x.shape+3);
+
+    int out_h = (H - this->k) / this->stride + 1;
+    int out_w = (W - this->k) / this->stride + 1;
+
+    float* col_data = (float*) mkl_malloc(N * out_h * out_w * C * this->k * this->k, 32);
+
+    int im2col_idx = 0;
+    #pragma omp parallel for simd collapse(6)
+    for (int n = 0; n < N; n++) {
+        for (int h = 0; h < H; h++) {
+            for (int w = 0; w < W; w++) {
+                for (int c = 0; c < C; c++) {
+                    for (int kh = 0; kh < this->k; kh++) {
+                        for (int kw = 0; kw < this->k; kw++) {
+                            int x_idx = ((n * C + c) * H + (h * this->stride + kh)) * W + (w * this->stride + kw);
+                            *(col_data+im2col_idx) = *(x.data+x_idx);
+                            im2col_idx++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    int* shape = (int*) malloc(4 * sizeof(int));
+    *(shape) = N;
+    *(shape+1) = C;
+    *(shape+2) = out_h;
+    *(shape+3) = out_w;
+    return *(new Tensor(col_data, shape, 4));
+}
+
+Tensor& Conv2d::col2im(Tensor& x) {
+    return *filters;
 }
 
 Tensor& Conv2d::forward(Tensor& x) {
