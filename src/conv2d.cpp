@@ -46,12 +46,14 @@ Tensor& Conv2d::im2col(Tensor& x) {
             }
         }
     }
-    int* shape = (int*) malloc(4 * sizeof(int));
-    *(shape) = N;
-    *(shape+1) = C;
-    *(shape+2) = out_h;
-    *(shape+3) = out_w;
-    return *(new Tensor(col_data, shape, 4));
+    int* shape = (int*) malloc(2 * sizeof(int));
+    // *(shape) = N;
+    // *(shape+1) = C;
+    // *(shape+2) = out_h;
+    // *(shape+3) = out_w;
+    *(shape) = N * out_h * out_w;
+    *(shape+1) = C * this->k * this->k;
+    return *(new Tensor(col_data, shape, 2));
 }
 
 Tensor& Conv2d::col2im(Tensor& x) {
