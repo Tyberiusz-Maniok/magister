@@ -123,14 +123,22 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias) {
     float* result = (float*) mkl_malloc(m * n * sizeof(float), MALLOC_ALIGN);
     float beta = 0;
     if (bias != nullptr) {
-        std::memcpy(bias, result, m * n * sizeof(float));
+        std::memcpy(bias->data, result, m * n * sizeof(float));
         beta = 1;
     }
 
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, this->data, k, other.data, n, beta, result, n);
 
-    Shape* shape = new Shape(1, 1, n ,m);
-    return *(new Tensor(result, shape, m*n));
+    return *(new Tensor(result, new Shape(1, 1, n ,m), m*n));
+}
+
+void Tensor::reshape(int n, int c, int h, int w) {
+    this->shape->n = n;
+    this->shape->c = c;
+    this->shape->h = h;
+    this->shape->w = w;
+    delete this->strides;
+    this->strides = set_strides(this->shape);
 }
 
 Tensor* Tensor::zeros(Shape* shape_) {

@@ -51,7 +51,11 @@ Tensor& Conv2d::col2im(Tensor& x) {
 }
 
 Tensor& Conv2d::forward(Tensor& x) {
-    return *filters;
+    Tensor& col = im2col(x);
+    this->filters->reshape(1,1,this->out, this->in * this->k * this->k);
+
+    Tensor& out = filters->matmul(x);
+    return out;
 }
 
 Tensor& Conv2d::sanity_check(Tensor& x) {
