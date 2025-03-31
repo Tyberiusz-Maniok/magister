@@ -5,12 +5,10 @@
 using namespace lamp;
 
 Linear::Linear(int input, int output, RandomGen& rng, activ_fn activation_fn) : activation_fn(activation_fn) {
-    int* shape = (int*) mkl_malloc(2 * sizeof(int), 32);
-    *(shape) = input;
-    *(shape+1) = output;
+    Shape* shape = new Shape(1, 1, input, output);
 
-    this->weights = Tensor::random(shape, 2, rng);
-    this->bias = Tensor::random(shape, 2, rng);
+    this->weights = Tensor::random(shape, rng);
+    this->bias = Tensor::random(shape, rng);
 }
 
 Linear::~Linear() {
@@ -25,7 +23,7 @@ Tensor& Linear::forward(Tensor& x) {
 }
 
 Tensor& Linear::sanity_check(Tensor& x) {
-    if (x.rank > 2 || *(x.shape+1) != *(weights->shape)) {
+    if (x.shape->w != this->weights->shape->h) {
         throw std::runtime_error("invalid shape");
     }
     return forward(x);

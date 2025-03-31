@@ -10,6 +10,8 @@ class Conv2d : Layer {
         Tensor* filters;
         int stride;
         int k;
+        int out_h;
+        int out_w;
         activ_fn activation_fn;
 
         Conv2d(int input, int output, int kernel, RandomGen& rng, activ_fn activation_fn=identity);

@@ -4,18 +4,25 @@
 
 namespace lamp {
 
+struct Shape {
+    int n, c, h, w;
+
+    Shape(int n, int c, int w, int h) : n(n), c(c), h(h), w(w) {}
+    Shape(Shape& other) : n(other.n), c(other.c), h(other.h), w(other.w) {}
+};
+
 class Tensor {
     public:
         float* data;
-        int* shape;
+        Shape* shape;
         int size;
-        int* strides;
+        Shape* strides;
         int rank;
         bool requires_grad;
         // Tensor& grad;
 
-        Tensor(float* data, int* shape, int rank, bool requires_grad=true);
-        Tensor(float* data, int* shape, int rank, int size, bool requires_grad=true);
+        Tensor(float* data, Shape* shape, bool requires_grad=true);
+        Tensor(float* data, Shape* shape, int size, bool requires_grad=true);
         Tensor(Tensor& other);
         ~Tensor();
 
@@ -36,18 +43,13 @@ class Tensor {
         Tensor operator[](std::gslice idx);
 
         float dot(Tensor& other);
-        Tensor& matmul(Tensor& other);
-        Tensor tranpose(int ax1, int ax2);
-        Tensor stack();
-        Tensor unstack(int* axes);
-        Tensor reshape(int* shape);
+        Tensor& matmul(Tensor& other, Tensor* bias = nullptr);
+        void reshape(Shape* shape);
+        void reshape(int n, int c, int h, int w);
         Tensor backwards();
-        Tensor flip();
-
-        int* shift_slice(Tensor& tensor, int axis, int shift);
     
-        static Tensor* zeros(int* shape_, int rank_);
-        static Tensor* random(int* shape_, int rank_, RandomGen& rng, float low = -1, float high = 1);
+        static Tensor* zeros(Shape* shape_);
+        static Tensor* random(Shape* shape_, RandomGen& rng, float low = -1, float high = 1);
 };
 
 }

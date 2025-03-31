@@ -7,11 +7,8 @@ using namespace lamp;
 Conv2d::Conv2d(int input, int output, int kernel, RandomGen& rng, activ_fn activation_fn) : activation_fn(activation_fn),
     k(kernel), stride(1) {
     int* shape = (int*) mkl_malloc(4 * sizeof(int), 32);
-    *(shape) = output;
-    *(shape+1) = input;
-    *(shape+2) = kernel;
-    *(shape+3) = kernel;
-    this->filters = Tensor::random(shape, 4, rng);
+    this->filters = Tensor::random(new Shape(output, input, kernel, kernel), rng);
+    // this->bias = Tensor::random
 }
 
 Conv2d::~Conv2d() {
@@ -19,10 +16,10 @@ Conv2d::~Conv2d() {
 }
 
 Tensor& Conv2d::im2col(Tensor& x) {
-    int N = *(x.shape);
-    int C = *(x.shape+1);
-    int H = *(x.shape+2);
-    int W = *(x.shape+3);
+    int N = x.shape->n;
+    int C = x.shape->c;
+    int H = x.shape->h;
+    int W = x.shape->w;
 
     int out_h = (H - this->k) / this->stride + 1;
     int out_w = (W - this->k) / this->stride + 1;
@@ -46,14 +43,7 @@ Tensor& Conv2d::im2col(Tensor& x) {
             }
         }
     }
-    int* shape = (int*) malloc(2 * sizeof(int));
-    // *(shape) = N;
-    // *(shape+1) = C;
-    // *(shape+2) = out_h;
-    // *(shape+3) = out_w;
-    *(shape) = N * out_h * out_w;
-    *(shape+1) = C * this->k * this->k;
-    return *(new Tensor(col_data, shape, 2));
+    return *(new Tensor(col_data, new Shape(1, 1, N * out_h * out_w, C * this->k * this->k)));
 }
 
 Tensor& Conv2d::col2im(Tensor& x) {
