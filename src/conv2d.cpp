@@ -70,12 +70,14 @@ Tensor& Conv2d::col2im(Tensor& x, Shape& shape) {
 }
 
 Tensor& Conv2d::forward(Tensor& x) {
+    int n = x.shape->n;
     int h = x.shape->h;
     int w = x.shape->w;
     Tensor& col = im2col(x);
     this->filters->reshape(1,1,this->out_c, this->in_c * this->k * this->k);
 
     Tensor& out = filters->matmul(x);
+    out.reshape(n, out_c, out_h, out_w);
     return out;
 }
 

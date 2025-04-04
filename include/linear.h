@@ -11,7 +11,7 @@ class Linear : Layer {
         Tensor* bias;
         activ_fn activation_fn;
 
-        Linear(int input, int output, RandomGen& rng, activ_fn activation_fn=identity);
+        Linear(int input, int output, RandomGen& rng, activ_fn activation_fn=Layer::identity);
         ~Linear();
 
         Tensor& forward(Tensor& x) override;

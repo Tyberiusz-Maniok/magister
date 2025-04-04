@@ -1,8 +1,9 @@
 #pragma once
 #include "tensor.h"
-#include "activations.h"
 
 namespace lamp {
+
+typedef std::function<void(Tensor&)> activ_fn;
 
 class Layer {
     public:
@@ -12,6 +13,9 @@ class Layer {
         virtual Tensor& forward(Tensor& x)=0;
         virtual Tensor& sanity_check(Tensor& x)=0;
         virtual void backward()=0;
+
+        static void identity(Tensor& x);
+        static void relu(Tensor& x);
 };
 
 }
