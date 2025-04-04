@@ -8,7 +8,7 @@ Linear::Linear(int input, int output, RandomGen& rng, activ_fn activation_fn) : 
     Shape* shape = new Shape(1, 1, input, output);
 
     this->weights = Tensor::random(shape, rng);
-    this->bias = Tensor::random(shape, rng);
+    this->bias = Tensor::random(new Shape(*shape), rng);
 }
 
 Linear::~Linear() {
@@ -17,9 +17,7 @@ Linear::~Linear() {
 }
 
 Tensor& Linear::forward(Tensor& x) {
-    Tensor& out = x.matmul(*weights);
-    out += *(this->bias);
-    return out;
+    return x.matmul(*weights, bias);
 }
 
 Tensor& Linear::sanity_check(Tensor& x) {

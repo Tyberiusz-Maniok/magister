@@ -10,8 +10,8 @@ class Conv2d : Layer {
         Tensor* filters;
         int stride;
         int k;
-        int in;
-        int out;
+        int in_c;
+        int out_c;
         int out_h;
         int out_w;
         activ_fn activation_fn;
@@ -24,7 +24,7 @@ class Conv2d : Layer {
         void backward() override;
 
         Tensor& im2col(Tensor& x);
-        Tensor& col2im(Tensor& x);
+        Tensor& col2im(Tensor& x, Shape& shape);
 };
 
 }

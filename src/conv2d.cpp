@@ -4,9 +4,8 @@
 
 using namespace lamp;
 
-Conv2d::Conv2d(int input, int output, int kernel, RandomGen& rng, activ_fn activation_fn) : activation_fn(activation_fn),
-    k(kernel), stride(1) {
-    int* shape = (int*) mkl_malloc(4 * sizeof(int), 32);
+Conv2d::Conv2d(int input, int output, int kernel, RandomGen& rng, activ_fn activation_fn) : in_c(input), out_c(output),
+    activation_fn(activation_fn), k(kernel), stride(1) {
     this->filters = Tensor::random(new Shape(output, input, kernel, kernel), rng);
     // this->bias = Tensor::random
 }
@@ -46,19 +45,43 @@ Tensor& Conv2d::im2col(Tensor& x) {
     return *(new Tensor(col_data, new Shape(1, 1, N * out_h * out_w, C * this->k * this->k)));
 }
 
-Tensor& Conv2d::col2im(Tensor& x) {
+Tensor& Conv2d::col2im(Tensor& x, Shape& shape) {
+    float* im = (float*) mkl_calloc(shape.n * shape.c * shape.h * shape.w, sizeof(float), 32);
+
+    int col2im_idx = 0;
+    #pragma omp parallel for simd collapse(6)
+    for (int n = 0; n < shape.n; n++) {
+        for (int c = 0; c < shape.c; c++) {
+            for (int h = 0; h < x.shape->h; h++) {
+                for(int w = 0; w < x.shape->w; w++) {
+                    for (int kh = 0; kh < x.shape->h; kh++) {
+                        for (int kw = 0; kw < x.shape->w; kw++) {
+                            int im_idx = ((n * shape.c + c) * x.shape->h + (h * this->stride + kh)) * x.shape->w + (w * this->stride + kw);
+                            *(im + im_idx) = *(x.data+col2im_idx);
+                            col2im_idx++; 
+                            
+                        }
+                    }
+                }
+            }
+        }
+    }
     return *filters;
 }
 
 Tensor& Conv2d::forward(Tensor& x) {
+    int h = x.shape->h;
+    int w = x.shape->w;
     Tensor& col = im2col(x);
-    this->filters->reshape(1,1,this->out, this->in * this->k * this->k);
+    this->filters->reshape(1,1,this->out_c, this->in_c * this->k * this->k);
 
     Tensor& out = filters->matmul(x);
     return out;
 }
 
 Tensor& Conv2d::sanity_check(Tensor& x) {
+    this->out_h = (x.shape->h - this->k) / this->stride + 1;
+    this->out_w = (x.shape->w - this->k) / this->stride + 1;
     return forward(x);
 }
 
