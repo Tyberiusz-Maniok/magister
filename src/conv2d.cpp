@@ -1,13 +1,14 @@
 #include "conv2d.h"
 #include <mkl.h>
 #include <omp.h>
+#include "consts.h"
 
 using namespace lamp;
 
-Conv2d::Conv2d(int input, int output, int kernel, RandomGen& rng, activ_fn activation_fn) : in_c(input), out_c(output),
-    activation_fn(activation_fn), k(kernel), stride(1) {
+Conv2d::Conv2d(int input, int output, int kernel, int stride, RandomGen& rng, activ_fn activation_fn) : in_c(input), out_c(output),
+    activation_fn(activation_fn), k(kernel), stride(stride) {
     this->filters = Tensor::random(new Shape(output, input, kernel, kernel), rng);
-    // this->bias = Tensor::random
+    // this->bias = nullptr;
 }
 
 Conv2d::~Conv2d() {
@@ -15,57 +16,79 @@ Conv2d::~Conv2d() {
 }
 
 Tensor& Conv2d::im2col(Tensor& x) {
-    int N = x.shape->n;
-    int C = x.shape->c;
-    int H = x.shape->h;
-    int W = x.shape->w;
 
-    int out_h = (H - this->k) / this->stride + 1;
-    int out_w = (W - this->k) / this->stride + 1;
+    float* col_data = (float*) mkl_calloc(x.shape->n * out_h * out_w * x.shape->c * this->k * this->k, sizeof(float), MALLOC_ALIGN);
+    Shape* col_shape = new Shape(x.shape->n, x.shape->c, out_h*k, out_w*k);
 
-    float* col_data = (float*) mkl_malloc(N * out_h * out_w * C * this->k * this->k, 32);
+    Tensor* col = new Tensor(col_data, col_shape);
 
-    int im2col_idx = 0;
-    #pragma omp parallel for simd collapse(6)
-    for (int n = 0; n < N; n++) {
-        for (int h = 0; h < H; h++) {
-            for (int w = 0; w < W; w++) {
-                for (int c = 0; c < C; c++) {
+    for (int n = 0; n < x.shape->n; n++) {
+        for (int c = 0; c < x.shape->c; c++) {
+            for (int h = 0; h < this->out_h; h++) {
+                for (int w = 0; w < this->out_w; w++) {
                     for (int kh = 0; kh < this->k; kh++) {
                         for (int kw = 0; kw < this->k; kw++) {
-                            int x_idx = ((n * C + c) * H + (h * this->stride + kh)) * W + (w * this->stride + kw);
-                            *(col_data+im2col_idx) = *(x.data+x_idx);
-                            im2col_idx++;
+                            *(col_data+col->flat_index(n, c, h * this->out_h + kh, w * this->out_w + kw)) = x.at(n, c, h + kh, w + kw);
                         }
                     }
                 }
             }
         }
     }
-    return *(new Tensor(col_data, new Shape(1, 1, N * out_h * out_w, C * this->k * this->k)));
+
+    return *col;
+
+    // int N = x.shape->n;
+    // int C = x.shape->c;
+    // int H = x.shape->h;
+    // int W = x.shape->w;
+
+    // int out_h = (H - this->k) / this->stride + 1;
+    // int out_w = (W - this->k) / this->stride + 1;
+
+
+
+    // int im2col_idx = 0;
+    // #pragma omp parallel for simd collapse(6)
+    // for (int n = 0; n < N; n++) {
+    //     for (int h = 0; h < H; h++) {
+    //         for (int w = 0; w < W; w++) {
+    //             for (int c = 0; c < C; c++) {
+    //                 for (int kh = 0; kh < this->k; kh++) {
+    //                     for (int kw = 0; kw < this->k; kw++) {
+    //                         int x_idx = ((n * C + c) * H + (h * this->stride + kh)) * W + (w * this->stride + kw);
+    //                         *(col_data+im2col_idx) = *(x.data+x_idx);
+    //                         im2col_idx++;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    // return *(new Tensor(col_data, new Shape(1, 1, N * out_h * out_w, C * this->k * this->k)));
 }
 
 Tensor& Conv2d::col2im(Tensor& x, Shape& shape) {
-    float* im = (float*) mkl_calloc(shape.n * shape.c * shape.h * shape.w, sizeof(float), 32);
+    // float* im = (float*) mkl_calloc(shape.n * shape.c * shape.h * shape.w, sizeof(float), MALLOC_ALIGN);
 
-    int col2im_idx = 0;
-    #pragma omp parallel for simd collapse(6)
-    for (int n = 0; n < shape.n; n++) {
-        for (int c = 0; c < shape.c; c++) {
-            for (int h = 0; h < x.shape->h; h++) {
-                for(int w = 0; w < x.shape->w; w++) {
-                    for (int kh = 0; kh < x.shape->h; kh++) {
-                        for (int kw = 0; kw < x.shape->w; kw++) {
-                            int im_idx = ((n * shape.c + c) * x.shape->h + (h * this->stride + kh)) * x.shape->w + (w * this->stride + kw);
-                            *(im + im_idx) = *(x.data+col2im_idx);
-                            col2im_idx++; 
+    // int col2im_idx = 0;
+    // #pragma omp parallel for simd collapse(6)
+    // for (int n = 0; n < shape.n; n++) {
+    //     for (int c = 0; c < shape.c; c++) {
+    //         for (int h = 0; h < x.shape->h; h++) {
+    //             for(int w = 0; w < x.shape->w; w++) {
+    //                 for (int kh = 0; kh < x.shape->h; kh++) {
+    //                     for (int kw = 0; kw < x.shape->w; kw++) {
+    //                         int im_idx = ((n * shape.c + c) * x.shape->h + (h * this->stride + kh)) * x.shape->w + (w * this->stride + kw);
+    //                         *(im + im_idx) = *(x.data+col2im_idx);
+    //                         col2im_idx++; 
                             
-                        }
-                    }
-                }
-            }
-        }
-    }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
     return *filters;
 }
 

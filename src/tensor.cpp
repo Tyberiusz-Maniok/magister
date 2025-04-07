@@ -3,11 +3,10 @@
 #include <stdlib.h>
 #include <mkl.h>
 #include <mkl_vsl.h>
+#include "consts.h"
 #include <cstring>
 
 #include <cstdio>
-
-#define MALLOC_ALIGN 32
 
 using namespace lamp;
 
@@ -32,7 +31,7 @@ Tensor::Tensor(float* data, Shape* shape, bool requires_grad) : data(data), shap
 
 Tensor::Tensor(float* data, Shape* shape, int size, bool requires_grad) : data(data), shape(shape),
     size(size), requires_grad(requires_grad) {
-    set_strides(shape);
+    this->strides = set_strides(shape);
 }
 
 Tensor::Tensor(Tensor& other) : size(other.size), requires_grad(other.requires_grad),
@@ -107,6 +106,15 @@ Tensor& Tensor::operator/=(Tensor& other) {
     return *this;
 }
 
+int Tensor::flat_index(int n, int c, int h, int w) {
+    // printf("idx = %i", n * this->strides->n + c * this->strides->c + h * this->strides->h + w * this->strides->w);
+    return n * this->strides->n + c * this->strides->c + h * this->strides->h + w * this->strides->w;
+}
+
+float Tensor::at(int n, int c, int h, int w) {
+    return *(this->data+flat_index(n, c, h, w));
+}
+
 float Tensor::operator[](int idx) {
     return *(this->data+idx);
 }
@@ -120,7 +128,7 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias) {
     int k = this->shape->w;
     int n = other.shape->w;
 
-    float* result = (float*) mkl_malloc(m * n * sizeof(float), MALLOC_ALIGN);
+    float* result = (float*) mkl_calloc(m * n, sizeof(float), MALLOC_ALIGN);
     float beta = 0;
     if (bias != nullptr) {
         std::memcpy(bias->data, result, m * n * sizeof(float));
@@ -137,8 +145,26 @@ void Tensor::reshape(int n, int c, int h, int w) {
     this->shape->c = c;
     this->shape->h = h;
     this->shape->w = w;
-    delete this->strides;
+    // delete this->strides;
     this->strides = set_strides(this->shape);
+}
+
+void Tensor::print() {
+    for (int n = 0; n < shape->n; n++) {
+        printf("[");
+        for (int c = 0; c < shape->c; c++) {
+            printf("[");
+            for (int h = 0; h < shape->h; h++) {
+                printf("[");
+                for (int w = 0; w < shape->w; w++) {
+                    printf("%f ", at(n,c,h,w)); 
+                }
+                printf("]\n");
+            }
+            printf("]\n");
+        }
+        printf("]\n");
+    }
 }
 
 Tensor* Tensor::zeros(Shape* shape_) {

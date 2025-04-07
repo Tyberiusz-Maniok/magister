@@ -16,7 +16,7 @@ class Conv2d : Layer {
         int out_w;
         activ_fn activation_fn;
 
-        Conv2d(int input, int output, int kernel, RandomGen& rng, activ_fn activation_fn=Layer::identity);
+        Conv2d(int input, int output, int kernel, int stride, RandomGen& rng, activ_fn activation_fn=Layer::identity);
         ~Conv2d();
 
         Tensor& forward(Tensor& x) override;

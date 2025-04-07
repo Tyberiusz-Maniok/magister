@@ -13,9 +13,13 @@ int main() {
 
     Tensor* t1 = Tensor::random(new Shape(1, 1, 4, 4), *rng);
 
-    Conv2d* conv = new Conv2d(1, 3, 3, *rng);
+    Conv2d* conv = new Conv2d(1, 3, 3, 1, *rng);
+
+    conv->filters->print();
 
     Tensor& out = conv->sanity_check(*t1);
+
+    out.print();
 
     delete &out;
     delete conv;
