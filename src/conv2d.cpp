@@ -22,6 +22,7 @@ Tensor& Conv2d::im2col(Tensor& x) {
 
     Tensor* col = new Tensor(col_data, col_shape);
 
+    #pragma omp parallel for simd collapse(6)
     for (int n = 0; n < x.shape->n; n++) {
         for (int c = 0; c < x.shape->c; c++) {
             for (int h = 0; h < this->out_h; h++) {
@@ -37,35 +38,6 @@ Tensor& Conv2d::im2col(Tensor& x) {
     }
 
     return *col;
-
-    // int N = x.shape->n;
-    // int C = x.shape->c;
-    // int H = x.shape->h;
-    // int W = x.shape->w;
-
-    // int out_h = (H - this->k) / this->stride + 1;
-    // int out_w = (W - this->k) / this->stride + 1;
-
-
-
-    // int im2col_idx = 0;
-    // #pragma omp parallel for simd collapse(6)
-    // for (int n = 0; n < N; n++) {
-    //     for (int h = 0; h < H; h++) {
-    //         for (int w = 0; w < W; w++) {
-    //             for (int c = 0; c < C; c++) {
-    //                 for (int kh = 0; kh < this->k; kh++) {
-    //                     for (int kw = 0; kw < this->k; kw++) {
-    //                         int x_idx = ((n * C + c) * H + (h * this->stride + kh)) * W + (w * this->stride + kw);
-    //                         *(col_data+im2col_idx) = *(x.data+x_idx);
-    //                         im2col_idx++;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-    // return *(new Tensor(col_data, new Shape(1, 1, N * out_h * out_w, C * this->k * this->k)));
 }
 
 Tensor& Conv2d::col2im(Tensor& x, Shape& shape) {

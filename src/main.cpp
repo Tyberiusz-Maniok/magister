@@ -15,7 +15,7 @@ int main() {
 
     Conv2d* conv = new Conv2d(1, 3, 3, 1, *rng);
 
-    conv->filters->print();
+    // conv->filters->print();
 
     Tensor& out = conv->sanity_check(*t1);
 

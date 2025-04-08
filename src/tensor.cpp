@@ -128,7 +128,7 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias) {
     int k = this->shape->w;
     int n = other.shape->w;
 
-    float* result = (float*) mkl_calloc(m * n, sizeof(float), MALLOC_ALIGN);
+    float* result = (float*) mkl_malloc(m * n * sizeof(float), MALLOC_ALIGN);
     float beta = 0;
     if (bias != nullptr) {
         std::memcpy(bias->data, result, m * n * sizeof(float));
