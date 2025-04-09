@@ -7,7 +7,7 @@ namespace lamp {
 struct Shape {
     int n, c, h, w;
 
-    Shape(int n, int c, int w, int h) : n(n), c(c), h(h), w(w) {}
+    Shape(int n, int c, int h, int w) : n(n), c(c), h(h), w(w) {}
     Shape(Shape& other) : n(other.n), c(other.c), h(other.h), w(other.w) {}
 };
 

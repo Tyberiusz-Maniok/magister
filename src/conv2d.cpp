@@ -16,10 +16,8 @@ Conv2d::~Conv2d() {
 }
 
 Tensor& Conv2d::im2col(Tensor& x) {
-
     float* col_data = (float*) mkl_calloc(x.shape->n * out_h * out_w * x.shape->c * this->k * this->k, sizeof(float), MALLOC_ALIGN);
     Shape* col_shape = new Shape(x.shape->n, x.shape->c, out_h*k, out_w*k);
-
     Tensor* col = new Tensor(col_data, col_shape);
 
     #pragma omp parallel for simd collapse(6)
@@ -41,27 +39,24 @@ Tensor& Conv2d::im2col(Tensor& x) {
 }
 
 Tensor& Conv2d::col2im(Tensor& x, Shape& shape) {
-    // float* im = (float*) mkl_calloc(shape.n * shape.c * shape.h * shape.w, sizeof(float), MALLOC_ALIGN);
-
-    // int col2im_idx = 0;
-    // #pragma omp parallel for simd collapse(6)
-    // for (int n = 0; n < shape.n; n++) {
-    //     for (int c = 0; c < shape.c; c++) {
-    //         for (int h = 0; h < x.shape->h; h++) {
-    //             for(int w = 0; w < x.shape->w; w++) {
-    //                 for (int kh = 0; kh < x.shape->h; kh++) {
-    //                     for (int kw = 0; kw < x.shape->w; kw++) {
-    //                         int im_idx = ((n * shape.c + c) * x.shape->h + (h * this->stride + kh)) * x.shape->w + (w * this->stride + kw);
-    //                         *(im + im_idx) = *(x.data+col2im_idx);
-    //                         col2im_idx++; 
-                            
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-    return *filters;
+    float* im_data = (float*) mkl_calloc(shape.n * shape.c * shape.h * shape.w, sizeof(float), MALLOC_ALIGN);
+    Tensor* im = new Tensor(im_data, new Shape(shape));
+    
+    #pragma omp parallel for simd collapse(6)
+    for (int n = 0; n < x.shape->n; n++) {
+        for (int c = 0; c < x.shape->c; c++) {
+            for (int h = 0; h < this->out_h; h++) {
+                for (int w = 0; w < this->out_w; w++) {
+                    for (int kh = 0; kh < this->k; kh++) {
+                        for (int kw = 0; kw < this->k; kw++) {
+                            *(im_data+im->flat_index(n, c, h + kh, w + kw)) += x.at(n, c, h * this->out_h + kh, w * this->out_w + kw);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return *im;
 }
 
 Tensor& Conv2d::forward(Tensor& x) {
@@ -85,92 +80,3 @@ Tensor& Conv2d::sanity_check(Tensor& x) {
 void Conv2d::backward() {
 
 }
-
-
-/*
-
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <cstring>
-
-using namespace std;
-
-// GEMM-based Convolution function following Low-memory Algorithm from arXiv:1709.03395
-vector<vector<vector<vector<float>>>> gemm_convolution(
-    const vector<vector<vector<vector<float>>>>& input, // NCHW format
-    const vector<vector<vector<vector<float>>>>& weights, // OIHW format
-    const vector<float>& bias,
-    int stride_h, int stride_w, int M) {
-
-    int N = input.size();    // Batch size
-    int C = input[0].size(); // Input Channels
-    int H = input[0][0].size(); // Input Height
-    int W = input[0][0][0].size(); // Input Width
-
-    int K = weights.size();  // Output Channels
-    int kernel_h = weights[0][0].size(); // Kernel Height
-    int kernel_w = weights[0][0][0].size(); // Kernel Width
-
-    int out_h = (H - kernel_h) / stride_h + 1;
-    int out_w = (W - kernel_w) / stride_w + 1;
-
-    vector<vector<vector<vector<float>>>> output(N, vector<vector<vector<float>>>(K, vector<vector<float>>(out_h, vector<float>(out_w))));
-
-    // KN2Col transformation with M kernels
-    vector<vector<float>> kn2col(out_h * out_w, vector<float>(C * kernel_h * kernel_w));
-    for (int oh = 0; oh < out_h; ++oh) {
-        for (int ow = 0; ow < out_w; ++ow) {
-            int row_idx = oh * out_w + ow;
-            for (int c = 0; c < C; ++c) {
-                for (int kh = 0; kh < kernel_h; ++kh) {
-                    for (int kw = 0; kw < kernel_w; ++kw) {
-                        int h_idx = oh * stride_h + kh;
-                        int w_idx = ow * stride_w + kw;
-                        int col_idx = c * kernel_h * kernel_w + kh * kernel_w + kw;
-                        kn2col[row_idx][col_idx] = input[0][c][h_idx][w_idx];
-                    }
-                }
-            }
-        }
-    }
-
-    // Perform GEMM (General Matrix Multiplication) with M kernels
-    for (int k = 0; k < K; k += M) {
-        for (int m = 0; m < M && (k + m) < K; ++m) {
-            for (int i = 0; i < out_h * out_w; ++i) {
-                float sum = bias[k + m];
-                for (int j = 0; j < C * kernel_h * kernel_w; ++j) {
-                    sum += weights[k + m][j / (kernel_h * kernel_w)][(j / kernel_w) % kernel_h][j % kernel_w] * kn2col[i][j];
-                }
-                output[0][k + m][i / out_w][i % out_w] = sum;
-            }
-        }
-    }
-    return output;
-}
-
-int main() {
-    vector<vector<vector<vector<float>>>> input = {{{{1, 3, 2, 1}, {4, 6, 5, 2}, {7, 9, 8, 3}, {5, 2, 1, 4}}}};
-    vector<vector<vector<vector<float>>>> weights = {{{{1, 0}, {0, -1}}}, {{{0, 1}, {-1, 0}}}}; // Example with multiple kernels
-    vector<float> bias = {0, 0};
-    int stride_h = 1, stride_w = 1;
-    int M = 2; // Number of kernels processed at once
-    
-    auto output = gemm_convolution(input, weights, bias, stride_h, stride_w, M);
-    
-    for (const auto& n : output) {
-        for (const auto& k : n) {
-            for (const auto& row : k) {
-                for (float val : row) {
-                    cout << val << " ";
-                }
-                cout << endl;
-            }
-        }
-    }
-    return 0;
-}
-
-
-*/

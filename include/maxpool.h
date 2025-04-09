@@ -1,17 +1,19 @@
 #pragma once
-#include "layer"
+#include "layer.h"
 
 namespace lamp {
 
 class MaxPool : Layer {
     public:
         int kernel;
+        int stride;
 
         MaxPool(int kernel);
+        MaxPool(int kernel, int stride);
         
-        virtual Tensor& forward(Tensor& x)=0;
-        virtual Tensor& sanity_check(Tensor& x)=0;
-        virtual void backward()=0;
+        Tensor& forward(Tensor& x) override;
+        Tensor& sanity_check(Tensor& x) override;
+        void backward() override;
 };
 
 }
