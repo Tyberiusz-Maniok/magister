@@ -77,6 +77,6 @@ Tensor& Conv2d::sanity_check(Tensor& x) {
     return forward(x);
 }
 
-void Conv2d::backward() {
-
+Tensor& Conv2d::backward(Tensor& grad) {
+    return grad;
 }

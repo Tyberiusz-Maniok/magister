@@ -22,7 +22,7 @@ Tensor& MaxPool::forward(Tensor& x) {
                 for (int w = 0; w < out_w; w++) {
                     float max = x.at(n, c, h * stride, w * stride);
                     for (int kh = 0; kh < kernel; kh++) {
-                        for (int kw = 1; kw < kernel; kw++) {
+                        for (int kw = 0; kw < kernel; kw++) {
                             max = std::max(max, x.at(n, c, h * stride + kh, w * stride +kw));
                         }
                     }
@@ -39,6 +39,6 @@ Tensor& MaxPool::sanity_check(Tensor& x) {
     return forward(x);
 }
 
-void MaxPool::backward() {
-    
+Tensor& MaxPool::backward(Tensor& grad) {
+    return grad;   
 }

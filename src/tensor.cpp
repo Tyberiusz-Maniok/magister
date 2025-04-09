@@ -123,7 +123,7 @@ float Tensor::dot(Tensor& other) {
     return cblas_sdot(this->size, this->data, 1, other.data, 1);
 }
 
-Tensor& Tensor::matmul(Tensor& other, Tensor* bias) {
+Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa) {
     int m = this->shape->h;
     int k = this->shape->w;
     int n = other.shape->w;
@@ -135,7 +135,7 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias) {
         beta = 1;
     }
 
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, this->data, k, other.data, n, beta, result, n);
+    cblas_sgemm(CblasRowMajor, transa, CblasNoTrans, m, n, k, 1, this->data, k, other.data, n, beta, result, n);
 
     return *(new Tensor(result, new Shape(1, 1, n ,m), m*n));
 }
@@ -147,6 +147,15 @@ void Tensor::reshape(int n, int c, int h, int w) {
     this->shape->w = w;
     // delete this->strides;
     this->strides = set_strides(this->shape);
+}
+
+float Tensor::sum() {
+    float result = 0;
+    #pragma omp parallel for simd reduction(+:result)
+    for (int i = 0; i < this->size; i++) {
+        result += *(this->data+i);
+    }
+    return result;
 }
 
 void Tensor::print() {

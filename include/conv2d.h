@@ -21,7 +21,7 @@ class Conv2d : Layer {
 
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;
-        void backward() override;
+        Tensor& backward(Tensor& grad) override;
 
         Tensor& im2col(Tensor& x);
         Tensor& col2im(Tensor& x, Shape& shape);

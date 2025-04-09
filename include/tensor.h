@@ -1,6 +1,7 @@
 #pragma once
 #include <valarray>
 #include "rng.h"
+#include <mkl.h>
 
 namespace lamp {
 
@@ -19,7 +20,6 @@ class Tensor {
         Shape* strides;
         int rank;
         bool requires_grad;
-        // Tensor& grad;
 
         Tensor(float* data, Shape* shape, bool requires_grad=true);
         Tensor(float* data, Shape* shape, int size, bool requires_grad=true);
@@ -45,10 +45,12 @@ class Tensor {
         // Tensor operator[](std::gslice idx);
 
         float dot(Tensor& other);
-        Tensor& matmul(Tensor& other, Tensor* bias = nullptr);
+        Tensor& matmul(Tensor& other, Tensor* bias = nullptr, CBLAS_TRANSPOSE transa = CblasNoTrans);
         void reshape(Shape* shape);
         void reshape(int n, int c, int h, int w);
-        Tensor backwards();
+        float sum();
+
+        // Tensor backwards();
 
         void print();
     

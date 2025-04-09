@@ -16,7 +16,7 @@ class Linear : Layer {
 
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;
-        void backward() override;
+        Tensor& backward(Tensor& grad) override;
 };
 
 }
