@@ -2,6 +2,12 @@
 
 using namespace lamp;
 
+Layer::Layer() {}
+
+Layer::~Layer() {
+    delete input;
+}
+
 void Layer::identity(Tensor& x) {}
 
 void Layer::relu(Tensor& x) {

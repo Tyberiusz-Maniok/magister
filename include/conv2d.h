@@ -8,6 +8,7 @@ namespace lamp {
 class Conv2d : Layer {
     public:
         Tensor* filters;
+        Tensor* bias;
         int stride;
         int k;
         int in_c;
@@ -15,6 +16,7 @@ class Conv2d : Layer {
         int out_h;
         int out_w;
         activ_fn activation_fn;
+        Tensor* input_col;
 
         Conv2d(int input, int output, int kernel, int stride, RandomGen& rng, activ_fn activation_fn=Layer::identity);
         ~Conv2d();

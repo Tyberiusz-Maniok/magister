@@ -31,11 +31,12 @@ Tensor& Linear::sanity_check(Tensor& x) {
 Tensor& Linear::backward(Tensor& grad) {
     // float* delta = (float*) mkl_malloc(weights->shape->h * weights->shape->w * sizeof(float), MALLOC_ALIGN);
 
-    Tensor* input;
-    Tensor& delta_w = input->matmul(grad, nullptr, CblasTrans);
+    //TODO apply relu derivative to grad
+    Tensor& delta_w = input->matmul(grad, nullptr, CblasTrans, CblasNoTrans);
+    Tensor& input_grad = delta_w.matmul(*weights, nullptr, CblasNoTrans, CblasTrans);
 
     *weights -= delta_w; // TODO *lr
-    // *bias -= grad.sum();
+    *bias -= grad;
 
-    return delta_w;
+    return input_grad;
 }

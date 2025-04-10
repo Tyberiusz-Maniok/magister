@@ -38,6 +38,8 @@ class Tensor {
         Tensor& operator*=(Tensor& other);
         Tensor& operator/=(Tensor& other);
 
+        Tensor& operator*=(float other);
+
         int flat_index(int n, int c, int h, int w);
         float at(int n, int c, int h, int w);
         float operator[](int idx);
@@ -45,7 +47,7 @@ class Tensor {
         // Tensor operator[](std::gslice idx);
 
         float dot(Tensor& other);
-        Tensor& matmul(Tensor& other, Tensor* bias = nullptr, CBLAS_TRANSPOSE transa = CblasNoTrans);
+        Tensor& matmul(Tensor& other, Tensor* bias = nullptr, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans);
         void reshape(Shape* shape);
         void reshape(int n, int c, int h, int w);
         float sum();

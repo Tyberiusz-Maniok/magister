@@ -75,7 +75,7 @@ Tensor& Tensor::operator/(Tensor& other) {
 }
 
 Tensor& Tensor::operator+=(Tensor& other) {
-    #pragma omp parallel for
+    #pragma omp parallel for simd
     for (int i=0; i < this->size; i++) {
         *(this->data+i) += *(other.data+i);
     }
@@ -83,7 +83,7 @@ Tensor& Tensor::operator+=(Tensor& other) {
 }
 
 Tensor& Tensor::operator-=(Tensor& other) {
-    #pragma omp parallel for
+    #pragma omp parallel for simd
     for (int i=0; i < this->size; i++) {
         *(this->data+i) -= *(other.data+i);
     }
@@ -91,7 +91,7 @@ Tensor& Tensor::operator-=(Tensor& other) {
 }
 
 Tensor& Tensor::operator*=(Tensor& other) {
-    #pragma omp parallel for
+    #pragma omp parallel for simd
     for (int i=0; i < this->size; i++) {
         *(this->data+i) *= *(other.data+i);
     }
@@ -99,9 +99,17 @@ Tensor& Tensor::operator*=(Tensor& other) {
 }
 
 Tensor& Tensor::operator/=(Tensor& other) {
-    #pragma omp parallel for
+    #pragma omp parallel for simd
     for (int i=0; i < this->size; i++) {
         *(this->data+i) /= *(other.data+i);
+    }
+    return *this;
+}
+
+Tensor& Tensor::operator*=(float other) {
+    #pragma omp parallel for simd
+    for (int i=0; i < this->size; i++) {
+        *(this->data+i) *= other;
     }
     return *this;
 }
@@ -123,7 +131,7 @@ float Tensor::dot(Tensor& other) {
     return cblas_sdot(this->size, this->data, 1, other.data, 1);
 }
 
-Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa) {
+Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLAS_TRANSPOSE transb) {
     int m = this->shape->h;
     int k = this->shape->w;
     int n = other.shape->w;
@@ -135,7 +143,7 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa) {
         beta = 1;
     }
 
-    cblas_sgemm(CblasRowMajor, transa, CblasNoTrans, m, n, k, 1, this->data, k, other.data, n, beta, result, n);
+    cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, k, other.data, n, beta, result, n);
 
     return *(new Tensor(result, new Shape(1, 1, n ,m), m*n));
 }

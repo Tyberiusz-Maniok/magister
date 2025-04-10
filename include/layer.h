@@ -7,8 +7,11 @@ typedef std::function<void(Tensor&)> activ_fn;
 
 class Layer {
     public:
-        Layer(){};
-        ~Layer(){};
+        bool train = true;
+        Tensor* input;
+
+        Layer();
+        ~Layer();
 
         virtual Tensor& forward(Tensor& x)=0;
         virtual Tensor& sanity_check(Tensor& x)=0;
