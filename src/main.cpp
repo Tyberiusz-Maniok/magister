@@ -27,18 +27,19 @@ int main() {
     Tensor& col = conv->im2col(*t1);
 
     Tensor& grad = conv->backward(out);
+    // conv->filters->print();
 
     // t1->print();
-    out.print();
+    // out.print();
     grad.print();
     // col.print();
 
-    Tensor& im = conv->col2im(col, *(t1->shape));
+    // Tensor& im = conv->col2im(col, *(t1->shape));
 
     // im.print();
 
     delete &grad;
-    delete &im;
+    // delete &im;
     delete &col;
     delete &out;
     delete conv;

@@ -33,7 +33,7 @@ Tensor& Linear::backward(Tensor& grad) {
 
     //TODO apply relu derivative to grad
     Tensor& delta_w = input->matmul(grad, nullptr, CblasTrans, CblasNoTrans);
-    Tensor& input_grad = delta_w.matmul(*weights, nullptr, CblasNoTrans, CblasTrans);
+    Tensor& input_grad = grad.matmul(*weights, nullptr, CblasNoTrans, CblasTrans);
 
     *weights -= delta_w; // TODO *lr
     *bias -= grad;

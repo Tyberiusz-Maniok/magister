@@ -51,7 +51,8 @@ Tensor& Conv2d::col2im(Tensor& x, Shape& shape) {
                 for (int w = 0; w < this->out_w; w++) {
                     for (int kh = 0; kh < this->k; kh++) {
                         for (int kw = 0; kw < this->k; kw++) {
-                            *(im_data+im->flat_index(n, c, h * stride + kh, w * stride + kw)) += x.at(n, c, h * this->out_h + kh, w * this->out_w + kw);
+                            *(im_data+im->flat_index(n, c, h * stride + kh, w * stride + kw)) += x.at(n, c, kh * k + kw, h * out_w + w);
+                            // *(im_data+im->flat_index(n, c, h * stride + kh, w * stride + kw)) += x.at(n, c, h * this->out_h + kh, w * this->out_w + kw);
                         }
                     }
                 }
@@ -72,9 +73,8 @@ Tensor& Conv2d::forward(Tensor& x) {
     if (train) {
         this->input_col = &col;
     }
-    this->filters->reshape(1,1, this->in_c * this->k * this->k, this->out_c);
-
-    Tensor& out = filters->matmul(x);
+    this->filters->reshape(1,1,this->out_c, this->in_c * this->k * this->k);
+    Tensor& out = filters->matmul(col);
     out.reshape(n, out_c, out_h, out_w);
     return out;
 }
@@ -86,8 +86,12 @@ Tensor& Conv2d::sanity_check(Tensor& x) {
 }
 
 Tensor& Conv2d::backward(Tensor& grad) {
-    Tensor& delta_w = grad.matmul(*input_col, nullptr, CblasNoTrans, CblasTrans);
-    Tensor& col_grad = filters->matmul(grad, nullptr, CblasTrans, CblasNoTrans);
+    grad.reshape(1,1, grad.shape->n * grad.shape->c * grad.shape->h, grad.shape->w);
+    Tensor& delta_w = input_col->matmul(grad);
+    Tensor& col_grad = grad.matmul(*filters);
+
+    *weights -= delta_w; // TODO *lr
+    // *bias -= grad;
 
     Tensor& input_grad = col2im(col_grad, *(input->shape));
 
