@@ -2,7 +2,6 @@
 #include <omp.h>
 #include <stdlib.h>
 #include <mkl.h>
-#include <mkl_vsl.h>
 #include "consts.h"
 #include <cstring>
 
@@ -23,19 +22,16 @@ Shape* set_strides(Shape* shape) {
     );
 }
 
-Tensor::Tensor(float* data, Shape* shape, bool requires_grad) : data(data), shape(shape),
-    requires_grad(requires_grad) {
+Tensor::Tensor(float* data, Shape* shape) : data(data), shape(shape) {
     this->size = accum_size(shape);
     this->strides = set_strides(shape);
 }
 
-Tensor::Tensor(float* data, Shape* shape, int size, bool requires_grad) : data(data), shape(shape),
-    size(size), requires_grad(requires_grad) {
+Tensor::Tensor(float* data, Shape* shape, int size) : data(data), shape(shape), size(size) {
     this->strides = set_strides(shape);
 }
 
-Tensor::Tensor(Tensor& other) : size(other.size), requires_grad(other.requires_grad),
-    shape(new Shape(*(other.shape))), strides(new Shape(*(other.strides))) {
+Tensor::Tensor(Tensor& other) : size(other.size), shape(new Shape(*(other.shape))), strides(new Shape(*(other.strides))) {
     this->data = (float*) mkl_malloc(other.size * sizeof(float), MALLOC_ALIGN);
     std::memcpy(other.data, this->data, other.size * sizeof(float));
 }
@@ -76,32 +72,32 @@ Tensor& Tensor::operator/(Tensor& other) {
 
 Tensor& Tensor::operator+=(Tensor& other) {
     #pragma omp parallel for simd
-    for (int i=0; i < this->size; i++) {
-        *(this->data+i) += *(other.data+i);
+    for (int i=0; i < size; i++) {
+        *(data+i) += *(other.data+i);
     }
     return *this;
 }
 
 Tensor& Tensor::operator-=(Tensor& other) {
     #pragma omp parallel for simd
-    for (int i=0; i < this->size; i++) {
-        *(this->data+i) -= *(other.data+i);
+    for (int i=0; i < size; i++) {
+        *(data+i) -= *(other.data+i);
     }
     return *this;
 }
 
 Tensor& Tensor::operator*=(Tensor& other) {
     #pragma omp parallel for simd
-    for (int i=0; i < this->size; i++) {
-        *(this->data+i) *= *(other.data+i);
+    for (int i=0; i < size; i++) {
+        *(data+i) *= *(other.data+i);
     }
     return *this;
 }
 
 Tensor& Tensor::operator/=(Tensor& other) {
     #pragma omp parallel for simd
-    for (int i=0; i < this->size; i++) {
-        *(this->data+i) /= *(other.data+i);
+    for (int i=0; i < size; i++) {
+        *(data+i) /= *(other.data+i);
     }
     return *this;
 }
@@ -109,26 +105,25 @@ Tensor& Tensor::operator/=(Tensor& other) {
 Tensor& Tensor::operator*=(float other) {
     #pragma omp parallel for simd
     for (int i=0; i < this->size; i++) {
-        *(this->data+i) *= other;
+        *(data+i) *= other;
     }
     return *this;
 }
 
 int Tensor::flat_index(int n, int c, int h, int w) {
-    // printf("idx = %i", n * this->strides->n + c * this->strides->c + h * this->strides->h + w * this->strides->w);
-    return n * this->strides->n + c * this->strides->c + h * this->strides->h + w * this->strides->w;
+    return n * strides->n + c * strides->c + h * strides->h + w * strides->w;
 }
 
 float Tensor::at(int n, int c, int h, int w) {
-    return *(this->data+flat_index(n, c, h, w));
+    return *(data+flat_index(n, c, h, w));
 }
 
 float Tensor::operator[](int idx) {
-    return *(this->data+idx);
+    return *(data+idx);
 }
 
 float Tensor::dot(Tensor& other) {
-    return cblas_sdot(this->size, this->data, 1, other.data, 1);
+    return cblas_sdot(size, data, 1, other.data, 1);
 }
 
 Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLAS_TRANSPOSE transb) {
@@ -160,10 +155,72 @@ void Tensor::reshape(int n, int c, int h, int w) {
 float Tensor::sum() {
     float result = 0;
     #pragma omp parallel for simd reduction(+:result)
-    for (int i = 0; i < this->size; i++) {
-        result += *(this->data+i);
+    for (int i = 0; i < size; i++) {
+        result += *(data+i);
     }
     return result;
+}
+
+float Tensor::avg() {
+    return sum() / size;
+}
+
+float Tensor::variance() {
+    float result = 0;
+    float mean = avg();
+    #pragma omp parallel for simd reduction(+:result)
+    for (int i = 0; i < size; i++) {
+        float diff = *(data+i) - mean;
+        result += diff * diff;
+    }
+    return result / size;
+}
+
+float Tensor::variance_from_avg(float avg) {
+    float result = 0;
+    #pragma omp parallel for simd reduction(+:result)
+    for (int i = 0; i < size; i++) {
+        result += *(data+i) - avg;
+    }
+    return result / size;
+}
+
+float Tensor::sum2d(int n, int c) {
+    float result = 0;
+    int start_idx = n * strides->n + c * strides->c;
+    #pragma omp parallel for simd reduction(+:result)
+    for (int i = start_idx; i < start_idx + shape->h * shape->w; i++) {
+        result += *(data+i);
+    }
+    return result;
+}
+
+
+float Tensor::avg2d(int n, int c) {
+    return sum2d(n, c) / (shape->h * shape->w);
+}
+
+float Tensor::variance2d(int n, int c) {
+    float result = 0;
+    float mean = avg2d(n, c);
+    int start_idx = n * strides->n + c * strides->c;
+    #pragma omp parallel for simd reduction(+:result)
+    for (int i = start_idx; i < start_idx + shape->h * shape->w; i++) {
+        float diff = *(this->data+i) - mean;
+        result += diff * diff;
+    }
+    return result / size;
+}
+
+float Tensor::variance_from_avg2d(int n, int c, float avg) {
+    float result = 0;
+    int start_idx = n * strides->n + c * strides->c;
+    #pragma omp parallel for simd reduction(+:result)
+    for (int i = start_idx; i < start_idx + shape->h * shape->w; i++) {
+        float diff = *(this->data+i) - avg;
+        result += diff * diff;
+    }
+    return result / size;
 }
 
 void Tensor::print() {

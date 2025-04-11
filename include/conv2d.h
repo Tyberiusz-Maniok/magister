@@ -1,6 +1,5 @@
 #pragma once
 #include "layer.h"
-#include "tensor.h"
 #include "rng.h"
 
 namespace lamp {
@@ -10,7 +9,7 @@ class Conv2d : Layer {
         Tensor* filters;
         Tensor* bias;
         int stride;
-        int k;
+        int kernel;
         int in_c;
         int out_c;
         int out_h;

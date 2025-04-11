@@ -18,11 +18,15 @@ Linear::~Linear() {
 }
 
 Tensor& Linear::forward(Tensor& x) {
+    if (train) {
+        input = &x;
+    }
+
     return x.matmul(*weights, bias);
 }
 
 Tensor& Linear::sanity_check(Tensor& x) {
-    if (x.shape->w != this->weights->shape->h) {
+    if (x.shape->w != weights->shape->h) {
         throw std::runtime_error("invalid shape");
     }
     return forward(x);

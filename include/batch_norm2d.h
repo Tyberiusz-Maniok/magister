@@ -3,17 +3,14 @@
 
 namespace lamp {
 
-class MaxPool : Layer {
+class BatchNorm2d : Layer {
     public:
-        int kernel;
-        int stride;
-        int out_h;
-        int out_w;
-        int* max_indices;
+        float epsilon;
+        float mul = 0.9;
+        float bias = 0.1;
 
-        MaxPool(int kernel);
-        MaxPool(int kernel, int stride);
-        
+        BatchNorm2d(float epsilon);
+
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;
         Tensor& backward(Tensor& grad) override;

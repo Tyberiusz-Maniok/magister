@@ -1,5 +1,4 @@
 #pragma once
-#include <valarray>
 #include "rng.h"
 #include <mkl.h>
 
@@ -19,10 +18,9 @@ class Tensor {
         int size;
         Shape* strides;
         int rank;
-        bool requires_grad;
 
-        Tensor(float* data, Shape* shape, bool requires_grad=true);
-        Tensor(float* data, Shape* shape, int size, bool requires_grad=true);
+        Tensor(float* data, Shape* shape);
+        Tensor(float* data, Shape* shape, int size);
         Tensor(Tensor& other);
         ~Tensor();
 
@@ -43,14 +41,19 @@ class Tensor {
         int flat_index(int n, int c, int h, int w);
         float at(int n, int c, int h, int w);
         float operator[](int idx);
-        // Tensor operator[](std::slice idx);
-        // Tensor operator[](std::gslice idx);
 
         float dot(Tensor& other);
         Tensor& matmul(Tensor& other, Tensor* bias = nullptr, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans);
         void reshape(Shape* shape);
         void reshape(int n, int c, int h, int w);
         float sum();
+        float sum2d(int n, int c);
+        float avg();
+        float avg2d(int n, int c);
+        float variance();
+        float variance2d(int n, int c);
+        float variance_from_avg(float avg);
+        float variance_from_avg2d(int n, int c, float avg);
 
         // Tensor backwards();
 
