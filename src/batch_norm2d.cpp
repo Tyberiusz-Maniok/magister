@@ -1,11 +1,36 @@
 #include "batch_norm2d.h"
+#include "consts.h"
+#include <cmath>
 
 using namespace lamp;
 
 BatchNorm2d::BatchNorm2d(float epsilon) : epsilon(epsilon) {}
 
 Tensor& BatchNorm2d::forward(Tensor& x) {
-    return x;
+
+    if (train) {
+        this->input = &x;
+    }
+
+    Tensor* out = new Tensor(x);
+
+    float* avgs = (float*) mkl_malloc(x.shape->n * x.shape->c * sizeof(float), MALLOC_ALIGN);
+    float* stds = (float*) mkl_malloc(x.shape->n * x.shape->c * sizeof(float), MALLOC_ALIGN);
+
+    #pragma omp parallel for
+    for (int n = 0; n < x.shape->n; n++) {
+        for (int c = 0; c < x.shape->c; c++) {
+            float avg = out->avg2d(n, c);
+            float std = std::sqrt(out->variance_from_avg2d(n, c, avg) + epsilon);
+            for (int h = 0; h < x.shape->h; h++) {
+                for (int w = 0; w < x.shape->w; w++) {
+                    *(out->data + out->flat_index(n, c, h, w)) = (out->at(n, c, h, w) - avg) / std * mul + bias;
+                }
+            }
+        }
+    }
+
+    return *out;
 }
 
 Tensor& BatchNorm2d::sanity_check(Tensor& x) {
