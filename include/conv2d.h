@@ -22,10 +22,11 @@ class Conv2d : Layer {
 
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;
-        Tensor& backward(Tensor& grad) override;
+        Tensor& backward(Tensor& grad, float lr) override;
 
         Tensor& im2col(Tensor& x);
         Tensor& col2im(Tensor& x, Shape& shape);
+        void init_bias(Shape* shape, RandomGen& rng);
 };
 
 }

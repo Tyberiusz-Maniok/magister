@@ -16,7 +16,7 @@ class MaxPool : Layer {
         
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;
-        Tensor& backward(Tensor& grad) override;
+        Tensor& backward(Tensor& grad, float lr) override;
 };
 
 }

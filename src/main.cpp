@@ -26,7 +26,7 @@ int main() {
 
     Tensor& col = conv->im2col(*t1);
 
-    Tensor& grad = conv->backward(out);
+    Tensor& grad = conv->backward(out, 0.1);
     // conv->filters->print();
 
     // t1->print();

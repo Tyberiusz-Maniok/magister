@@ -110,6 +110,13 @@ Tensor& Tensor::operator*=(float other) {
     return *this;
 }
 
+void Tensor::mulsub(Tensor& other, float mul) {
+    #pragma omp parallel for simd
+    for (int i = 0; i < size; i++) {
+        *(data+i) -= *(other.data+i) * mul;
+    }
+}
+
 int Tensor::flat_index(int n, int c, int h, int w) {
     return n * strides->n + c * strides->c + h * strides->h + w * strides->w;
 }
@@ -134,7 +141,8 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLA
     float* result = (float*) mkl_malloc(m * n * sizeof(float), MALLOC_ALIGN);
     float beta = 0;
     if (bias != nullptr) {
-        std::memcpy(bias->data, result, m * n * sizeof(float));
+        Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
+        // std::memcpy(bias->data, result, m * n * sizeof(float));
         beta = 1;
     }
 
@@ -142,6 +150,10 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLA
 
     return *(new Tensor(result, new Shape(1, 1, n ,m), m*n));
 }
+
+// Tensor& Tensor::matvecmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE trans) {
+//     int m = 
+// }
 
 void Tensor::reshape(int n, int c, int h, int w) {
     this->shape->n = n;
@@ -254,4 +266,11 @@ Tensor* Tensor::random(Shape* shape_, RandomGen& rng, float low, float high) {
     rng.populate(size_, data_, low, high);
 
     return new Tensor(data_, shape_, size_);
+}
+
+void Tensor::bias_cpy(float* bias, float* dest, int bias_size, int n) {
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++) {
+        std::memcpy(bias, dest+i*bias_size*sizeof(float), bias_size * sizeof(float));
+    }
 }

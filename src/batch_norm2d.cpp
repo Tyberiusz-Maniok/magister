@@ -37,6 +37,6 @@ Tensor& BatchNorm2d::sanity_check(Tensor& x) {
     return forward(x);
 }
 
-Tensor& BatchNorm2d::backward(Tensor& grad) {
+Tensor& BatchNorm2d::backward(Tensor& grad, float lr) {
     return grad;
 }

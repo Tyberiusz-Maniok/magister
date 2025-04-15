@@ -57,7 +57,7 @@ Tensor& MaxPool::sanity_check(Tensor& x) {
     return forward(x);
 }
 
-Tensor& MaxPool::backward(Tensor& grad) {
+Tensor& MaxPool::backward(Tensor& grad, float lr) {
     float* input_data = (float*) mkl_calloc(input->size, sizeof(float), MALLOC_ALIGN);
     Tensor* input_grad = new Tensor(input_data, new Shape(*(input->shape)));
 

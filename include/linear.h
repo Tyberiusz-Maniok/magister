@@ -6,6 +6,8 @@ namespace lamp {
 
 class Linear : Layer {
     public:
+        // int input;
+        // int output;
         Tensor* weights;
         Tensor* bias;
         activ_fn activation_fn;
@@ -15,7 +17,7 @@ class Linear : Layer {
 
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;
-        Tensor& backward(Tensor& grad) override;
+        Tensor& backward(Tensor& grad, float lr) override;
 };
 
 }

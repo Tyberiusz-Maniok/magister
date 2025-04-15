@@ -12,7 +12,7 @@ class Leaf {
 
     Leaf(Layer* layer, Leaf* dependencies, int n_dep);
 
-    Tensor& backward(Tensor& grad);
+    Tensor& backward(Tensor& grad, float lr);
 };
 
 }

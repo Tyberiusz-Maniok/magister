@@ -17,6 +17,10 @@ Conv2d::~Conv2d() {
     delete this->input_col;
 }
 
+void Conv2d::init_bias(Shape* shape, RandomGen& rng) {
+    this->bias = Tensor::random(shape, rng);
+}
+
 Tensor& Conv2d::im2col(Tensor& x) {
     float* col_data = (float*) mkl_calloc(x.shape->n * out_h * out_w * x.shape->c * kernel * kernel, sizeof(float), MALLOC_ALIGN);
     Shape* col_shape = new Shape(x.shape->n, x.shape->c, kernel*kernel, out_h*out_w);
@@ -64,7 +68,7 @@ Tensor& Conv2d::col2im(Tensor& x, Shape& shape) {
 
 Tensor& Conv2d::forward(Tensor& x) {
     if (train) {
-        input = &x;
+        this->input = &x;
     }
 
     int n = x.shape->n;
@@ -85,16 +89,17 @@ Tensor& Conv2d::forward(Tensor& x) {
 Tensor& Conv2d::sanity_check(Tensor& x) {
     this->out_h = (x.shape->h - kernel) / stride + 1;
     this->out_w = (x.shape->w - kernel) / stride + 1;
+    // this->bias = Tensor::random(new Shape(x.shape->n, out_c, out_h, out_w), rng);
     return forward(x);
 }
 
-Tensor& Conv2d::backward(Tensor& grad) {
+Tensor& Conv2d::backward(Tensor& grad, float lr) {
     grad.reshape(1,1, grad.shape->n * grad.shape->c * grad.shape->h, grad.shape->w);
     Tensor& delta_w = input_col->matmul(grad);
     Tensor& col_grad = grad.matmul(*filters);
 
-    *filters -= delta_w; // TODO *lr
-    // *bias -= grad;
+    filters->mulsub(delta_w, lr);
+    // bias->mulsub(grad, lr);
 
     Tensor& input_grad = col2im(col_grad, *(input->shape));
 

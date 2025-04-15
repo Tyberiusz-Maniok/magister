@@ -6,10 +6,10 @@
 using namespace lamp;
 
 Linear::Linear(int input, int output, RandomGen& rng, activ_fn activation_fn) : activation_fn(activation_fn) {
-    Shape* shape = new Shape(1, 1, output, input);
+    Shape* shape = new Shape(1, 1, input, output);
 
     this->weights = Tensor::random(shape, rng);
-    this->bias = Tensor::random(new Shape(*shape), rng);
+    this->bias = Tensor::random(new Shape(1, 1, 1, output), rng);
 }
 
 Linear::~Linear() {
@@ -19,7 +19,7 @@ Linear::~Linear() {
 
 Tensor& Linear::forward(Tensor& x) {
     if (train) {
-        input = &x;
+        this->input = &x;
     }
 
     return x.matmul(*weights, bias);
@@ -32,15 +32,13 @@ Tensor& Linear::sanity_check(Tensor& x) {
     return forward(x);
 }
 
-Tensor& Linear::backward(Tensor& grad) {
-    // float* delta = (float*) mkl_malloc(weights->shape->h * weights->shape->w * sizeof(float), MALLOC_ALIGN);
-
+Tensor& Linear::backward(Tensor& grad, float lr) {
     //TODO apply relu derivative to grad
     Tensor& delta_w = input->matmul(grad, nullptr, CblasTrans, CblasNoTrans);
     Tensor& input_grad = grad.matmul(*weights, nullptr, CblasNoTrans, CblasTrans);
 
-    *weights -= delta_w; // TODO *lr
-    *bias -= grad;
+    weights->mulsub(delta_w, lr);
+    bias->mulsub(grad, lr);
 
     return input_grad;
 }
