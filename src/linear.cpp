@@ -22,7 +22,13 @@ Tensor& Linear::forward(Tensor& x) {
         this->input = &x;
     }
 
-    return x.matmul(*weights, bias);
+    // assume x is flattened
+    x.reshape(1, 1, x.shape->n, x.shape->w);
+    Tensor& out = x.matmul(*weights, bias);
+    out.reshape(out.shape->h, 1, 1, out.shape->w);
+    out.reshape
+
+    return out;
 }
 
 Tensor& Linear::sanity_check(Tensor& x) {

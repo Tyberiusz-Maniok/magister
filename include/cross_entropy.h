@@ -3,17 +3,13 @@
 
 namespace lamp {
 
-class BatchNorm2d : Layer {
+class CrossEntorpyLoss : Layer {
     public:
-        float epsilon;
-        float mul;
-        float bias;
-
-        BatchNorm2d(float epsilon, float mul = 0.9, float bias = 0.1);
-
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;
         Tensor& backward(Tensor& grad, float lr) override;
+
+        Tensor& loss(Tensor& pred, Tensor& target);
 };
 
 }

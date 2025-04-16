@@ -4,7 +4,7 @@
 
 using namespace lamp;
 
-BatchNorm2d::BatchNorm2d(float epsilon) : epsilon(epsilon) {}
+BatchNorm2d::BatchNorm2d(float epsilon, float mul, float bias) : epsilon(epsilon), mul(mul), bias(bias) {}
 
 Tensor& BatchNorm2d::forward(Tensor& x) {
 
@@ -38,5 +38,13 @@ Tensor& BatchNorm2d::sanity_check(Tensor& x) {
 }
 
 Tensor& BatchNorm2d::backward(Tensor& grad, float lr) {
+
+    float delta_b = grad.sum();
+    bias -= delta_b * lr;
+    // float delta_gamma = normalized * out;
+
+    // float delta_out = grad * mul;
+    // float delta_x = 1.0 / input->size * inv_var * (grad->shape->n - delta_out.sum()) - (delta_out * out).sum();
+
     return grad;
 }
