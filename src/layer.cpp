@@ -5,7 +5,9 @@ using namespace lamp;
 Layer::Layer() {}
 
 Layer::~Layer() {
-    delete input;
+    if (this->input != nullptr) {
+        delete input;
+    }
 }
 
 void Layer::identity(Tensor& x) {}

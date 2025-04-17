@@ -9,7 +9,12 @@ class BatchNorm2d : Layer {
         float mul;
         float bias;
 
+        // Tensor* avgs;
+        // Tensor* vars;
+        // Tensor* xhat;
+
         BatchNorm2d(float epsilon, float mul = 0.9, float bias = 0.1);
+        ~BatchNorm2d();
 
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;
