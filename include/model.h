@@ -3,20 +3,17 @@
 
 namespace lamp {
 
-class Sequential : Layer {
+class Model : Layer {
     public:
-        Layer** layers;
-        int layer_n;
+        Layer* net;
 
-        Sequential(Layer** layers, int layer_n);
+        Model(Layer* net);
+        ~Model();
 
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;
         Tensor& backward(Tensor& grad, float lr) override;
         void set_train(bool train) override;
-
-        Tensor& forward_t(Tensor& x) override;
-        Tensor& backward_t(Tensor& grad, float lr);
 };
 
 }
