@@ -5,7 +5,7 @@
 
 using namespace lamp;
 
-Linear::Linear(int input, int output, RandomGen& rng, activ_fn activation_fn) : activation_fn(activation_fn) {
+Linear::Linear(int input, int output, RandomGen& rng, Activation& activation_fn) : activation_fn(activation_fn) {
     Shape* shape = new Shape(1, 1, input, output);
 
     this->weights = Tensor::random(shape, rng);
@@ -26,7 +26,7 @@ Tensor& Linear::forward(Tensor& x) {
     x.reshape(1, 1, x.shape->n, x.shape->w);
     Tensor& out = x.matmul(*weights, bias);
     out.reshape(out.shape->h, 1, 1, out.shape->w);
-
+    activation_fn.forward(out);
     return out;
 }
 
@@ -38,7 +38,7 @@ Tensor& Linear::sanity_check(Tensor& x) {
 }
 
 Tensor& Linear::backward(Tensor& grad, float lr) {
-    //TODO apply relu derivative to grad
+    activation_fn.backward(grad);
     Tensor& delta_w = input->matmul(grad, nullptr, CblasTrans, CblasNoTrans);
     Tensor& input_grad = grad.matmul(*weights, nullptr, CblasNoTrans, CblasTrans);
 

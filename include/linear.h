@@ -1,6 +1,7 @@
 #pragma once
 #include "layer.h"
 #include "rng.h"
+#include "activations.h"
 
 namespace lamp {
 
@@ -10,9 +11,9 @@ class Linear : Layer {
         // int output;
         Tensor* weights;
         Tensor* bias;
-        activ_fn activation_fn;
+        Activation& activation_fn;
 
-        Linear(int input, int output, RandomGen& rng, activ_fn activation_fn=Layer::identity);
+        Linear(int input, int output, RandomGen& rng, Activation& activation_fn=identity);
         ~Linear();
 
         Tensor& forward(Tensor& x) override;

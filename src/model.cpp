@@ -6,6 +6,7 @@ Model::Model(Layer* net) : net(net) {};
 
 Model::~Model() {
     delete this->net;
+    delete this->loss;
 }
 
 Tensor& Model::forward(Tensor& x) {

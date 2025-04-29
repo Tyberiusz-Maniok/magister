@@ -3,7 +3,7 @@
 
 namespace lamp {
 
-class CrossEntorpyLoss : Layer {
+class CrossEntorpyLoss : public Layer {
     public:
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;

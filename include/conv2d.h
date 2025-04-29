@@ -1,10 +1,11 @@
 #pragma once
 #include "layer.h"
 #include "rng.h"
+#include "activations.h"
 
 namespace lamp {
 
-class Conv2d : Layer {
+class Conv2d : public Layer {
     public:
         Tensor* filters;
         Tensor* bias;
@@ -14,10 +15,10 @@ class Conv2d : Layer {
         int out_c;
         int out_h;
         int out_w;
-        activ_fn activation_fn;
+        Activation& activation_fn;
         Tensor* input_col;
 
-        Conv2d(int input, int output, int kernel, int stride, RandomGen& rng, activ_fn activation_fn=Layer::identity);
+        Conv2d(int input, int output, int kernel, int stride, RandomGen& rng, Activation& activation_fn=identity);
         ~Conv2d();
 
         Tensor& forward(Tensor& x) override;

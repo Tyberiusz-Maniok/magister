@@ -5,7 +5,7 @@
 
 using namespace lamp;
 
-Conv2d::Conv2d(int input, int output, int kernel, int stride, RandomGen& rng, activ_fn activation_fn) : in_c(input), out_c(output),
+Conv2d::Conv2d(int input, int output, int kernel, int stride, RandomGen& rng, Activation& activation_fn) : in_c(input), out_c(output),
     activation_fn(activation_fn), kernel(kernel), stride(stride) {
     this->filters = Tensor::random(new Shape(1, 1, output, input * kernel * kernel), rng);
     this->bias = nullptr;
@@ -82,6 +82,7 @@ Tensor& Conv2d::forward(Tensor& x) {
 
     Tensor& out = filters->matmul(col);
     out.reshape(n, out_c, out_h, out_w);
+    activation_fn.forward(out);
     return out;
 }
 
@@ -93,6 +94,7 @@ Tensor& Conv2d::sanity_check(Tensor& x) {
 }
 
 Tensor& Conv2d::backward(Tensor& grad, float lr) {
+    activation_fn.backward(grad);
     grad.reshape(1,1, grad.shape->n * grad.shape->c * grad.shape->h, grad.shape->w);
     Tensor& delta_w = input_col->matmul(grad);
     Tensor& col_grad = grad.matmul(*filters);
