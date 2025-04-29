@@ -7,7 +7,7 @@ using namespace lamp;
 
 Conv2d::Conv2d(int input, int output, int kernel, int stride, RandomGen& rng, Activation& activation_fn) : in_c(input), out_c(output),
     activation_fn(activation_fn), kernel(kernel), stride(stride) {
-    this->filters = Tensor::random(new Shape(1, 1, output, input * kernel * kernel), rng);
+    this->filters = Tensor::random(new Shape(1, 1, input * kernel * kernel, output), rng);
     this->bias = nullptr;
 }
 
@@ -34,6 +34,8 @@ Tensor& Conv2d::im2col(Tensor& x) {
                     for (int kh = 0; kh < kernel; kh++) {
                         for (int kw = 0; kw < kernel; kw++) {
                             *(col_data+col->flat_index(n, c, kh * kernel + kw, h * out_w + w)) = x.at(n, c, h * stride + kh, w * stride + kw);
+                            // int col_idx = ((n * x.shape->c + c) * out_h + (h * stride) + kh) *  out_w + w * stride + kw;
+                            // *(col_data+col->flat_index(n, c, kh * kernel + kw, h * out_w + w)) = x[col_idx];
                         }
                     }
                 }
@@ -56,7 +58,8 @@ Tensor& Conv2d::col2im(Tensor& x, Shape& shape) {
                     for (int kh = 0; kh < kernel; kh++) {
                         for (int kw = 0; kw < kernel; kw++) {
                             *(im_data+im->flat_index(n, c, h * stride + kh, w * stride + kw)) += x.at(n, c, kh * kernel + kw, h * out_w + w);
-                            // *(im_data+im->flat_index(n, c, h * stride + kh, w * stride + kw)) += x.at(n, c, h * out_h + kh, w * out_w + kw);
+                            // int col_idx = ((n * x.shape->c + c) * out_h + (h * stride) + kh) *  out_w + w * stride + kw;
+                            // *(im_data+im->flat_index(n, c, h * stride + kh, w * stride + kw)) = x.at(n, c, kh * kernel + kw, h * out_w + w);
                         }
                     }
                 }
@@ -80,7 +83,8 @@ Tensor& Conv2d::forward(Tensor& x) {
         input_col = &col;
     }
 
-    Tensor& out = filters->matmul(col);
+    col.reshape(1, 1, col.shape->w * col.shape->n, col.shape->c * col.shape->h);
+    Tensor& out = col.matmul(*filters);
     out.reshape(n, out_c, out_h, out_w);
     activation_fn.forward(out);
     return out;
@@ -95,14 +99,16 @@ Tensor& Conv2d::sanity_check(Tensor& x) {
 
 Tensor& Conv2d::backward(Tensor& grad, float lr) {
     activation_fn.backward(grad);
-    grad.reshape(1,1, grad.shape->n * grad.shape->c * grad.shape->h, grad.shape->w);
-    Tensor& delta_w = input_col->matmul(grad);
-    Tensor& col_grad = grad.matmul(*filters);
+    grad.reshape(1, 1, grad.shape->n * grad.shape->w, grad.shape->c * grad.shape->h);
+    Tensor& delta_w = grad.matmul(*input_col);
+    Tensor& col_grad = filters->matmul(grad);
+    col_grad.reshape(input_col->shape->n, input_col->shape->c, input_col->shape->h, input_col->shape->w);
 
     filters->mulsub(delta_w, lr);
     // bias->mulsub(grad, lr);
 
     Tensor& input_grad = col2im(col_grad, *(input->shape));
+    input_grad.print();
 
     return input_grad;
 }

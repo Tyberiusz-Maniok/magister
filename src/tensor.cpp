@@ -145,7 +145,6 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLA
         // std::memcpy(bias->data, result, m * n * sizeof(float));
         beta = 1;
     }
-
     cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, k, other.data, n, beta, result, n);
 
     return *(new Tensor(result, new Shape(1, 1, n ,m), m*n));
@@ -235,7 +234,12 @@ float Tensor::variance_from_avg2d(int n, int c, float avg) {
     return result / size;
 }
 
+void Tensor::print_shape() {
+    printf("Shape: %i, %i, %i, %i\n", shape->n, shape->c, shape->h, shape->w);
+}
+
 void Tensor::print() {
+    print_shape();
     for (int n = 0; n < shape->n; n++) {
         printf("[");
         for (int c = 0; c < shape->c; c++) {

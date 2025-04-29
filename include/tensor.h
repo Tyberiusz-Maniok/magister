@@ -61,6 +61,7 @@ class Tensor {
         // Tensor backwards();
 
         void print();
+        void print_shape();
     
         static Tensor* zeros(Shape* shape_);
         static Tensor* random(Shape* shape_, RandomGen& rng, float low = -1, float high = 1);

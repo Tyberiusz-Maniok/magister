@@ -29,23 +29,25 @@ int main() {
     Tensor& out = conv->sanity_check(*t1);
     Tensor& out1 = conv->forward_t(*t1);
 
-    // Tensor& col = conv->im2col(*t1);
+    Tensor& col = conv->im2col(*t1);
 
-    // Tensor& grad = conv->backward(out, 0.1);
+    Tensor& grad = conv->backward(out1, 0.1);
     // conv->filters->print();
 
     // t1->print();
-    out1.print();
+    // out1.print();
+    col.print();
+    // conv->filters->print();
     // grad.print();
-    // col.print();
+
 
     // Tensor& im = conv->col2im(col, *(t1->shape));
 
     // im.print();
 
-    // delete &grad;
+    delete &grad;
     // delete &im;
-    // delete &col;
+    delete &col;
     delete &out;
     delete &out1;
     delete conv;
