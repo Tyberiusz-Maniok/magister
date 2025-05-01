@@ -36,9 +36,9 @@ int main() {
 
     // t1->print();
     // out1.print();
-    col.print();
+    // col.print();
     // conv->filters->print();
-    // grad.print();
+    grad.print();
 
 
     // Tensor& im = conv->col2im(col, *(t1->shape));

@@ -147,7 +147,7 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLA
     }
     cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, k, other.data, n, beta, result, n);
 
-    return *(new Tensor(result, new Shape(1, 1, n ,m), m*n));
+    return *(new Tensor(result, new Shape(1, 1, m, n), m*n));
 }
 
 // Tensor& Tensor::matvecmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE trans) {

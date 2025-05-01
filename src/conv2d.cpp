@@ -102,6 +102,7 @@ Tensor& Conv2d::backward(Tensor& grad, float lr) {
     grad.reshape(1, 1, grad.shape->n * grad.shape->w, grad.shape->c * grad.shape->h);
     Tensor& delta_w = grad.matmul(*input_col);
     Tensor& col_grad = filters->matmul(grad);
+    col_grad.print();
     col_grad.reshape(input_col->shape->n, input_col->shape->c, input_col->shape->h, input_col->shape->w);
 
     filters->mulsub(delta_w, lr);
