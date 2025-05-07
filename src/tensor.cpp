@@ -142,17 +142,12 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLA
     float beta = 0;
     if (bias != nullptr) {
         Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
-        // std::memcpy(bias->data, result, m * n * sizeof(float));
         beta = 1;
     }
     cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, k, other.data, n, beta, result, n);
 
     return *(new Tensor(result, new Shape(1, 1, m, n), m*n));
 }
-
-// Tensor& Tensor::matvecmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE trans) {
-//     int m = 
-// }
 
 void Tensor::reshape(int n, int c, int h, int w) {
     this->shape->n = n;

@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 enable_testing()
 project(magister_ex)
 find_package(MKL CONFIG REQUIRED)
-find_package(OpenMP)
+find_package(OpenMP REQUIRED)
+find_package(OpenCV REQUIRED)
 #message(STATUS "${MKL_IMPORTED_TARGETS}") #Provides available list of targets based on input
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
@@ -12,8 +13,9 @@ add_executable(magister_ex "${SRC}")
 
 target_compile_options(magister_ex PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
 target_include_directories(magister_ex PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_libraries(magister_ex PUBLIC $<LINK_ONLY:MKL::MKL> $<$<CONFIG:Release>:OpenMP::OpenMP_CXX>)
+target_link_libraries(magister_ex PUBLIC $<LINK_ONLY:MKL::MKL> $<$<CONFIG:Release>:OpenMP::OpenMP_CXX> ${OpenCV_LIBS})
 
+include_directories(${OpenCV_INCLUDE_DIRS})
 target_include_directories(magister_ex PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 add_test(NAME mytest COMMAND myapp)

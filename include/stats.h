@@ -11,7 +11,7 @@ struct Stats {
     Stats(std::string name, double time) : name(name), time(time) {}
 
     std::string to_csv_row() {
-        return name + ";" + std::to_string(time);
+        return name + ";" + std::to_string(time) + "\n";
     }
 };
 
