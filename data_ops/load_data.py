@@ -6,7 +6,8 @@ def main():
     data = MNIST(root="./data/raw", download=True)
 
     for i, d in enumerate(data):
-        img = data.__getitem__(i)[0]
+        img, y = data.__getitem__(i)
+        # print(y)
         img = img.resize((TARGET_SIZE, TARGET_SIZE))
         img.save(f"./data/mod/{i}.jpg")
 

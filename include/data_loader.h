@@ -4,6 +4,13 @@
 
 namespace lamp {
 
+struct DataBatch {
+    Tensor* x;
+    Tensor* y;
+
+    DataBatch(Tensor* x, Tensor* y) : x(x), y(y) {}
+};
+
 class DataLoader {
     public:
         int total_size;
@@ -15,7 +22,8 @@ class DataLoader {
 
         DataLoader(int batch_size);
 
-        Tensor& next_batch();
+        DataBatch* next_batch();
+        bool has_next();
 
         static void read_img(std::string filename, float* mem_ptr);
 };

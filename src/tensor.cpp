@@ -259,10 +259,10 @@ Tensor* Tensor::zeros(Shape* shape_) {
     return new Tensor(data_, shape_, size_);
 }
 
-Tensor* Tensor::random(Shape* shape_, RandomGen& rng, float low, float high) {
+Tensor* Tensor::random(Shape* shape_, float low, float high) {
     int size_ = accum_size(shape_);
     float* data_ = (float*) mkl_malloc(size_ * sizeof(float), MALLOC_ALIGN);
-    rng.populate(size_, data_, low, high);
+    global_rand->populate(size_, data_, low, high);
 
     return new Tensor(data_, shape_, size_);
 }

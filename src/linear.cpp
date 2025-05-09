@@ -5,11 +5,11 @@
 
 using namespace lamp;
 
-Linear::Linear(int input, int output, RandomGen& rng, Activation& activation_fn) : activation_fn(activation_fn) {
+Linear::Linear(int input, int output, Activation& activation_fn) : activation_fn(activation_fn) {
     Shape* shape = new Shape(1, 1, input, output);
 
-    this->weights = Tensor::random(shape, rng);
-    this->bias = Tensor::random(new Shape(1, 1, 1, output), rng);
+    this->weights = Tensor::random(shape);
+    this->bias = Tensor::random(new Shape(1, 1, 1, output));
 }
 
 Linear::~Linear() {

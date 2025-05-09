@@ -58,14 +58,14 @@ int main() {
     // delete stats;
     // delete rng;
 
-    DataLoader* dl = new DataLoader(1);
+    // DataLoader* dl = new DataLoader(1);
 
-    Tensor& img = dl->next_batch();
+    // Tensor& img = dl->next_batch();
 
-    img.print();
+    // img.print();
 
-    delete &img;
-    delete dl;
+    // delete &img;
+    // delete dl;
 
     return 0;
 }

@@ -18,7 +18,7 @@ class Conv2d : public Layer {
         Activation& activation_fn;
         Tensor* input_col;
 
-        Conv2d(int input, int output, int kernel, int stride, RandomGen& rng, Activation& activation_fn=identity);
+        Conv2d(int input, int output, int kernel, int stride, Activation& activation_fn=identity);
         ~Conv2d();
 
         Tensor& forward(Tensor& x) override;
@@ -27,7 +27,7 @@ class Conv2d : public Layer {
 
         Tensor& im2col(Tensor& x);
         Tensor& col2im(Tensor& x, Shape& shape);
-        void init_bias(Shape* shape, RandomGen& rng);
+        void init_bias(Shape* shape);
 };
 
 }

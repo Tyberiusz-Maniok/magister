@@ -13,7 +13,7 @@ DataLoader::DataLoader(int batch_size) : batch_size(batch_size) {
     this->remaining_size = this->total_size;
 }
 
-Tensor& DataLoader::next_batch() {
+DataBatch* DataLoader::next_batch() {
     int batch_s = batch_size;
     if (remaining_size < batch_size) {
         batch_s = remaining_size;
@@ -23,7 +23,12 @@ Tensor& DataLoader::next_batch() {
     for (int i = 0; i < batch_s; i++) {
         read_img("../data/mod/1.jpg", result + i * IMAGE_SIZE);
     }
-    return *(new Tensor(result, new Shape(batch_s, 1, IMAGE_H, IMAGE_W)));
+    Tensor* x = new Tensor(result, new Shape(batch_s, 1, IMAGE_H, IMAGE_W));
+    return new DataBatch(x, nullptr);
+}
+
+bool DataLoader::has_next() {
+    return true;
 }
 
 void DataLoader::read_img(std::string filename, float* mem_ptr) {

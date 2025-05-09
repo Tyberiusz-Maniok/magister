@@ -13,7 +13,7 @@ class Linear : Layer {
         Tensor* bias;
         Activation& activation_fn;
 
-        Linear(int input, int output, RandomGen& rng, Activation& activation_fn=identity);
+        Linear(int input, int output, Activation& activation_fn=identity);
         ~Linear();
 
         Tensor& forward(Tensor& x) override;

@@ -5,9 +5,9 @@
 
 using namespace lamp;
 
-Conv2d::Conv2d(int input, int output, int kernel, int stride, RandomGen& rng, Activation& activation_fn) : in_c(input), out_c(output),
+Conv2d::Conv2d(int input, int output, int kernel, int stride, Activation& activation_fn) : in_c(input), out_c(output),
     activation_fn(activation_fn), kernel(kernel), stride(stride) {
-    this->filters = Tensor::random(new Shape(1, 1, input * kernel * kernel, output), rng);
+    this->filters = Tensor::random(new Shape(1, 1, input * kernel * kernel, output));
     this->bias = nullptr;
 }
 
@@ -17,8 +17,8 @@ Conv2d::~Conv2d() {
     delete this->input_col;
 }
 
-void Conv2d::init_bias(Shape* shape, RandomGen& rng) {
-    this->bias = Tensor::random(shape, rng);
+void Conv2d::init_bias(Shape* shape) {
+    this->bias = Tensor::random(shape);
 }
 
 Tensor& Conv2d::im2col(Tensor& x) {
