@@ -1,5 +1,5 @@
 #include "conv2d.h"
-#include <mkl.h>
+#include "mkl.h"
 #include <omp.h>
 #include "consts.h"
 
@@ -78,7 +78,6 @@ Tensor& Conv2d::forward(Tensor& x) {
     int h = x.shape->h;
     int w = x.shape->w;
     Tensor& col = im2col(x);
-
     if (train) {
         input_col = &col;
     }

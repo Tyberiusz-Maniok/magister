@@ -3,7 +3,7 @@
 
 namespace lamp {
 
-class Flatten : Layer {
+class Flatten : public Layer {
     public:
         int c;
         int h;

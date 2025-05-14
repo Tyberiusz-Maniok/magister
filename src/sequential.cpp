@@ -3,28 +3,28 @@
 
 using namespace lamp;
 
-Sequential::Sequential(Layer** layers, int layer_n) : layers(layers), layer_n(layer_n) {}
+Sequential::Sequential(std::vector<Layer*> layers, int layer_n) : layers(layers), layer_n(layer_n) {}
 
 Tensor& Sequential::forward(Tensor& x) {
-    Tensor* out;
+    Tensor* out = new Tensor(x);
     for (int i = 0; i < layer_n; i++) {
-        out = &((*(layers+i))->forward(x));
+        out = &(layers[i]->forward(*out));
     }
     return *out;
 }
 
 Tensor& Sequential::sanity_check(Tensor& x) {
-    Tensor* out;
+    Tensor* out = new Tensor(x);
     for (int i = 0; i < layer_n; i++) {
-        out = &((*(layers+i))->sanity_check(x));
+        out = &(layers[i]->sanity_check(*out));
     }
     return *out;
 }
 
 Tensor& Sequential::backward(Tensor& grad, float lr) {
-    Tensor* dgrad;
+    Tensor* dgrad = new Tensor(grad);
     for (int i = layer_n - 1; i >= 0; i--) {
-        dgrad = &((*(layers+i))->backward(grad, lr));
+        dgrad = &(layers[i]->backward(*dgrad, lr));
     }
     return *dgrad;
 }
@@ -32,16 +32,23 @@ Tensor& Sequential::backward(Tensor& grad, float lr) {
 void Sequential::set_train(bool train) {
     this->train = train;
     for (int i = 0; i < layer_n; i++) {
-        (*(layers+i))->train = train;
+        layers[i]->set_train(train);
+    }
+}
+
+void Sequential::set_stat_tracker(StatTracker* stat_tracker) {
+    this->stat_tracker = stat_tracker;
+    for (int i = 0; i < layer_n; i++) {
+        layers[i]->set_stat_tracker(stat_tracker);
     }
 }
 
 Tensor& Sequential::forward_t(Tensor& x) {
     double start, end, time = 0;
-    Tensor* out;
+    Tensor* out = new Tensor(x);
     for (int i = 0; i < layer_n; i++) {
         double start = omp_get_wtime();
-        out = &((*(layers+i))->forward(x));
+        out = &(layers[i]->forward_t(*out));
         double end = omp_get_wtime();
     }
     time += end - start;
@@ -50,10 +57,10 @@ Tensor& Sequential::forward_t(Tensor& x) {
 
 Tensor& Sequential::backward_t(Tensor& grad, float lr) {
     double start, end, time = 0;
-    Tensor* out;
+    Tensor* out = new Tensor(grad);
     for (int i = 0; i < layer_n; i++) {
         double start = omp_get_wtime();
-        out = &((*(layers+i))->backward(grad, lr));
+        out = &(layers[i]->backward_t(*out, lr));
         double end = omp_get_wtime();
     }
     time += end - start;

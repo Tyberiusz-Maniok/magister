@@ -3,7 +3,7 @@
 
 namespace lamp {
 
-class MaxPool : Layer {
+class MaxPool : public Layer {
     public:
         int kernel;
         int stride;

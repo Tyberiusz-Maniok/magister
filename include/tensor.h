@@ -1,6 +1,6 @@
 #pragma once
 #include "rng.h"
-#include <mkl.h>
+#include "mkl.h"
 
 namespace lamp {
 

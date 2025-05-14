@@ -1,7 +1,7 @@
 #include "tensor.h"
 #include <omp.h>
 #include <stdlib.h>
-#include <mkl.h>
+#include "mkl.h"
 #include "consts.h"
 #include <cstring>
 

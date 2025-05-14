@@ -1,5 +1,5 @@
 #include "rng.h"
-#include <mkl.h>
+#include "mkl.h"
 
 using namespace lamp;
 

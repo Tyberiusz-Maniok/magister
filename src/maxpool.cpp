@@ -1,6 +1,6 @@
 #include "maxpool.h"
 #include "consts.h"
-#include <mkl.h>
+#include "mkl.h"
 
 using namespace lamp;
 
@@ -9,6 +9,7 @@ MaxPool::MaxPool(int kernel) : kernel(kernel), stride(kernel) {}
 MaxPool::MaxPool(int kernel, int stride) : kernel(kernel), stride(stride) {}
 
 Tensor& MaxPool::forward(Tensor& x) {
+    x.print_shape();
     if (train) {
         input = &x;
     }
@@ -48,6 +49,7 @@ Tensor& MaxPool::forward(Tensor& x) {
         }
     }
 
+    out->print_shape();
     return *out; 
 }
 

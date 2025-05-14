@@ -3,7 +3,7 @@
 
 namespace lamp {
 
-class BatchNorm2d : Layer {
+class BatchNorm2d : public Layer {
     public:
         float epsilon;
         float mul;

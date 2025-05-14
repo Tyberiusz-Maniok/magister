@@ -2,11 +2,14 @@
 
 using namespace lamp;
 
-Model::Model(Layer* net, float lr) : net(net), lr(lr) {};
+Model::Model(Layer* net, float lr, StatTracker* stat_tracker) : net(net), lr(lr), stat_tracker(stat_tracker) {
+    this->net->set_stat_tracker(stat_tracker);
+};
 
 Model::~Model() {
     delete this->net;
     delete this->loss;
+    delete this->stat_tracker;
 }
 
 Tensor& Model::forward(Tensor& x) {

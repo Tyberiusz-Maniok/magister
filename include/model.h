@@ -5,13 +5,14 @@
 
 namespace lamp {
 
-class Model : Layer {
+class Model : public Layer {
     public:
         Layer* net;
         float lr;
+        StatTracker* stat_tracker;
         CrossEntorpyLoss* loss = new CrossEntorpyLoss();
 
-        Model(Layer* net, float lr);
+        Model(Layer* net, float lr, StatTracker* stat_tracker = nullptr);
         ~Model();
 
         Tensor& forward(Tensor& x) override;

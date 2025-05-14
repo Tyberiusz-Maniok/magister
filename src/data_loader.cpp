@@ -2,7 +2,7 @@
 #include "consts.h"
 #include <iostream>
 #include <fstream>
-#include <mkl.h>
+#include "mkl.h"
 #include <opencv2/opencv.hpp>
 #include <omp.h>
 

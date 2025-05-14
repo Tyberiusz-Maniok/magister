@@ -15,6 +15,8 @@ target_compile_options(magister_ex PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_C
 target_include_directories(magister_ex PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
 target_link_libraries(magister_ex PUBLIC $<LINK_ONLY:MKL::MKL> $<$<CONFIG:Release>:OpenMP::OpenMP_CXX> ${OpenCV_LIBS})
 
+# target_compile_options(magister_ex PRIVATE -Werror -Wall -Wextra)
+
 include_directories(${OpenCV_INCLUDE_DIRS})
 target_include_directories(magister_ex PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 

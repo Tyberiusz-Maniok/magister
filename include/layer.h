@@ -22,6 +22,7 @@ class Layer {
         virtual Tensor& backward(Tensor& grad, float lr)=0;
 
         virtual void set_train(bool train);
+        virtual void set_stat_tracker(StatTracker* stat_tracker);
         virtual Tensor& forward_t(Tensor& x);
         virtual Tensor& backward_t(Tensor& grad, float lr);
 };

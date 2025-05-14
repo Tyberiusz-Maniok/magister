@@ -5,7 +5,7 @@
 
 namespace lamp {
 
-class Linear : Layer {
+class Linear : public Layer {
     public:
         // int input;
         // int output;
