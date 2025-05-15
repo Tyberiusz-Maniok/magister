@@ -10,6 +10,7 @@ class Sequential : public Layer {
         int layer_n;
 
         Sequential(std::vector<Layer*> layers, int layer_n);
+        ~Sequential();
 
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;

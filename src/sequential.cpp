@@ -5,6 +5,12 @@ using namespace lamp;
 
 Sequential::Sequential(std::vector<Layer*> layers, int layer_n) : layers(layers), layer_n(layer_n) {}
 
+Sequential::~Sequential() {
+    for (int i = 0; i < layer_n; i++) {
+        delete layers[i];
+    }
+}
+
 Tensor& Sequential::forward(Tensor& x) {
     Tensor* out = new Tensor(x);
     for (int i = 0; i < layer_n; i++) {

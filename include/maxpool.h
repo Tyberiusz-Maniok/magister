@@ -13,6 +13,7 @@ class MaxPool : public Layer {
 
         MaxPool(int kernel);
         MaxPool(int kernel, int stride);
+        ~MaxPool();
         
         Tensor& forward(Tensor& x) override;
         Tensor& sanity_check(Tensor& x) override;

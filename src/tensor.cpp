@@ -13,8 +13,8 @@ int accum_size(Shape* shape) {
     return shape->n * shape->c * shape->h * shape->w;
 }
 
-Shape* set_strides(Shape* shape) {
-    return new Shape(
+void Tensor::set_strides(Shape* shape) {
+    this->strides = new Shape(
         shape->c * shape->h * shape->w,
         shape->h * shape->w,
         shape->w,
@@ -24,11 +24,11 @@ Shape* set_strides(Shape* shape) {
 
 Tensor::Tensor(float* data, Shape* shape) : data(data), shape(shape) {
     this->size = accum_size(shape);
-    this->strides = set_strides(shape);
+    set_strides(shape);
 }
 
 Tensor::Tensor(float* data, Shape* shape, int size) : data(data), shape(shape), size(size) {
-    this->strides = set_strides(shape);
+    set_strides(shape);
 }
 
 Tensor::Tensor(Tensor& other) : size(other.size), shape(new Shape(*(other.shape))), strides(new Shape(*(other.strides))) {
@@ -37,6 +37,8 @@ Tensor::Tensor(Tensor& other) : size(other.size), shape(new Shape(*(other.shape)
 }
 
 Tensor::~Tensor() {
+    printf("deleting tensor ");
+    print_shape();
     mkl_free(this->data);
     delete this->shape;
     delete this->strides;

@@ -22,13 +22,7 @@ void Conv2d::init_bias(Shape* shape) {
 }
 
 Tensor& Conv2d::im2col(Tensor& x) {
-    x.print_shape();
-    printf("%i %i", out_h, out_w);
     float* col_data = (float*) mkl_calloc(x.shape->n * out_h * out_w * x.shape->c * kernel * kernel, sizeof(float), MALLOC_ALIGN);
-    if (col_data == nullptr) {
-        printf("aaaaaaaaaaaaaa");
-    }
-    printf("%i %i", out_h, out_w);
     Shape* col_shape = new Shape(x.shape->n, x.shape->c, kernel*kernel, out_h*out_w);
     Tensor* col = new Tensor(col_data, col_shape);
 

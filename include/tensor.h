@@ -12,6 +12,8 @@ struct Shape {
 };
 
 class Tensor {
+    private:
+        void set_strides(Shape* shape);
     public:
         float* data;
         Shape* shape;

@@ -8,6 +8,10 @@ MaxPool::MaxPool(int kernel) : kernel(kernel), stride(kernel) {}
 
 MaxPool::MaxPool(int kernel, int stride) : kernel(kernel), stride(stride) {}
 
+MaxPool::~MaxPool() {
+    mkl_free(this->max_indices);
+}
+
 Tensor& MaxPool::forward(Tensor& x) {
     // x.print_shape();
     if (train) {
@@ -18,7 +22,7 @@ Tensor& MaxPool::forward(Tensor& x) {
     Tensor* out = new Tensor(data, new Shape(x.shape->n, x.shape->c, out_h, out_w));
 
     if (train) {
-        max_indices = (int*) mkl_malloc(x.shape->n * x.shape->c * out_h * out_w * sizeof(int), MALLOC_ALIGN);
+        this->max_indices = (int*) mkl_malloc(x.shape->n * x.shape->c * out_h * out_w * sizeof(int), MALLOC_ALIGN);
     }
 
     # pragma omp parallel for simd collapse(4)

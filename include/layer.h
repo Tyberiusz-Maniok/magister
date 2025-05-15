@@ -10,12 +10,12 @@ namespace lamp {
 class Layer {
     public:
         bool train = true;
-        Tensor* input;
+        Tensor* input = nullptr;
         std::string name;
         StatTracker* stat_tracker;
 
         Layer();
-        ~Layer();
+        virtual ~Layer();
 
         virtual Tensor& forward(Tensor& x)=0;
         virtual Tensor& sanity_check(Tensor& x)=0;

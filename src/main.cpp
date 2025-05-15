@@ -20,8 +20,9 @@ int main() {
 
     DataLoader* dl = new DataLoader(1);
 
-    Tensor* t1 = dl->next_batch()->x;
-    t1->print_shape();
+    DataBatch* db = dl->next_batch();
+    Tensor* t1 = db->x;
+    // t1->print_shape();
 
     // Tensor& out = ((Sequential*)model->net)->layers->forward(*t1);
     Tensor& out = model->sanity_check(*t1);
@@ -32,7 +33,10 @@ int main() {
     // Sequential* s1 = new Sequential({conv, conv2}, 1);
     // Tensor& out = conv->sanity_check(*t1);
     // Tensor& out = s1->sanity_check(*t1);
-    out.print_shape();
+    // out.print_shape();
+
+    Linear* lin = new Linear(4,5);
+    delete lin;
 
     delete dl;
     delete &out;
@@ -41,6 +45,8 @@ int main() {
     // delete conv;
     // delete conv2;
     delete model;
+    delete db->y;
+    delete db;
 
     return 0;
 }

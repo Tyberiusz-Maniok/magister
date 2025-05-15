@@ -6,6 +6,8 @@ using namespace lamp;
 
 BatchNorm2d::BatchNorm2d(float epsilon, float mul, float bias) : epsilon(epsilon), mul(mul), bias(bias) {}
 
+BatchNorm2d::~BatchNorm2d() {}
+
 Tensor& BatchNorm2d::forward(Tensor& x) {
 
     if (train) {

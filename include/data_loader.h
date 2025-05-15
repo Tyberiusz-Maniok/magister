@@ -9,6 +9,10 @@ struct DataBatch {
     Tensor* y;
 
     DataBatch(Tensor* x, Tensor* y) : x(x), y(y) {}
+    // ~DataBatch() {
+    //     delete x;
+    //     delete y;
+    // }
 };
 
 class DataLoader {

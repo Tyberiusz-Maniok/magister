@@ -39,7 +39,7 @@ DataBatch* DataLoader::next_batch() {
 }
 
 bool DataLoader::has_next() {
-    return true;
+    return remaining_size > 0;
 }
 
 void DataLoader::read_img(std::string filename, float* mem_ptr) {

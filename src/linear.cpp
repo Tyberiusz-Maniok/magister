@@ -6,9 +6,7 @@
 using namespace lamp;
 
 Linear::Linear(int input, int output, Activation& activation_fn) : activation_fn(activation_fn) {
-    Shape* shape = new Shape(1, 1, input, output);
-
-    this->weights = Tensor::random(shape);
+    this->weights = Tensor::random(new Shape(1, 1, input, output));
     this->bias = Tensor::random(new Shape(1, 1, 1, output));
 }
 
