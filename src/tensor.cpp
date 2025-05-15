@@ -154,8 +154,10 @@ void Tensor::reshape(int n, int c, int h, int w) {
     this->shape->c = c;
     this->shape->h = h;
     this->shape->w = w;
-    // delete this->strides;
-    this->strides = set_strides(this->shape);
+    this->strides->w = 1;
+    this->strides->h = w;
+    this->strides->c = h * w;
+    this->strides->n = c * h * w;
 }
 
 float Tensor::sum() {

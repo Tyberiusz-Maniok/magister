@@ -6,7 +6,8 @@ find_package(OpenMP REQUIRED)
 find_package(OpenCV REQUIRED)
 #message(STATUS "${MKL_IMPORTED_TARGETS}") #Provides available list of targets based on input
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -fsanitize=address")
 
 file(GLOB_RECURSE SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 add_executable(magister_ex "${SRC}")
@@ -24,6 +25,8 @@ add_test(NAME mytest COMMAND myapp)
 if(MKL_ENV)
   set_tests_properties(mytest PROPERTIES ENVIRONMENT "${MKL_ENV}")
 endif()
+
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,stack-size=10000000")
 
 if(OpenMP_CXX_FOUND)
   # target_link_libraries(magister_ex $<$<CONFIG:Release>:OpenMP::OpenMP_CXX>)

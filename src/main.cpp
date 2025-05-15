@@ -25,11 +25,21 @@ int main() {
 
     // Tensor& out = ((Sequential*)model->net)->layers->forward(*t1);
     Tensor& out = model->sanity_check(*t1);
-    out.print();
+
+    // Conv2d* conv = new Conv2d(1,6,6,1);
+    // Conv2d* conv2 = new Conv2d(6, 6, 6, 1);
+
+    // Sequential* s1 = new Sequential({conv, conv2}, 1);
+    // Tensor& out = conv->sanity_check(*t1);
+    // Tensor& out = s1->sanity_check(*t1);
+    out.print_shape();
 
     delete dl;
     delete &out;
     // delete t1;
+    // delete s1;
+    // delete conv;
+    // delete conv2;
     delete model;
 
     return 0;
