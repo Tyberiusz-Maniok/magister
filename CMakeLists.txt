@@ -26,8 +26,6 @@ if(MKL_ENV)
   set_tests_properties(mytest PROPERTIES ENVIRONMENT "${MKL_ENV}")
 endif()
 
-# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,stack-size=10000000")
-
 if(OpenMP_CXX_FOUND)
   # target_link_libraries(magister_ex $<$<CONFIG:Release>:OpenMP::OpenMP_CXX>)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")

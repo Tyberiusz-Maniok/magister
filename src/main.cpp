@@ -25,7 +25,8 @@ int main() {
     // t1->print_shape();
 
     // Tensor& out = ((Sequential*)model->net)->layers->forward(*t1);
-    Tensor& out = model->sanity_check(*t1);
+    // Tensor& out = model->sanity_check(*t1);
+    // Tensor& out2 = model->forward_t(*t1);
 
     // Conv2d* conv = new Conv2d(1,6,6,1);
     // Conv2d* conv2 = new Conv2d(6, 6, 6, 1);
@@ -35,11 +36,24 @@ int main() {
     // Tensor& out = s1->sanity_check(*t1);
     // out.print_shape();
 
-    Linear* lin = new Linear(4,5);
+    Linear* lin = new Linear(5,10);
+    lin->name = "lin";
+    StatTracker* st = new StatTracker();
+    lin->stat_tracker = st;
+    Tensor* t2 = Tensor::random(new Shape(1000000,1,1,5));
+    Tensor& o = lin->forward_t(*t2);
+    st->to_csv("test.csv");
     delete lin;
+    delete st;
+
+    // model->stat_tracker->to_csv("./test.csv");
 
     delete dl;
-    delete &out;
+    // delete &out;
+    delete &o;
+    // delete &o1;
+    // delete 
+    // delete &out2;
     // delete t1;
     // delete s1;
     // delete conv;

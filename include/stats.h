@@ -17,9 +17,9 @@ struct Stats {
 
 class StatTracker {
     public:
-        std::vector<Stats*> stats = std::vector<Stats*>();
+        std::vector<Stats> stats;
 
-        void add(Stats* stats);
+        void add(Stats stat);
 
         void to_csv(std::string filename);
 };

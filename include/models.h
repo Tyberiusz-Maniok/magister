@@ -28,7 +28,7 @@ static Model* lenet() {
     std::vector<Layer*> layers = {conv1, maxpool1, conv2, maxpool2, flatten};
     Sequential* lenet = new Sequential(layers, 5);
     lenet->name = "lenet";
-    StatTracker* stat_tracker;
+    StatTracker* stat_tracker = new StatTracker();
     return new Model(lenet, 0.1, stat_tracker);
 }
 
