@@ -140,15 +140,59 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLA
     int k = this->shape->w;
     int n = other.shape->w;
 
+    int lda = k;
+    int ldb = n;
+    int ldc = n;
+
+    if (transa == CblasTrans) {
+        int lda = m;
+    }
+    if (transb == CblasTrans) {
+        int ldb = k;
+    }
+
     float* result = (float*) mkl_malloc(m * n * sizeof(float), MALLOC_ALIGN);
     float beta = 0;
     if (bias != nullptr) {
         Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
         beta = 1;
     }
-    cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, k, other.data, n, beta, result, n);
+    cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, lda, other.data, ldb, beta, result, ldc);
 
     return *(new Tensor(result, new Shape(1, 1, m, n), m*n));
+}
+
+Tensor& Tensor::batched_matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLAS_TRANSPOSE transb) {
+    int m = this->shape->h;
+    int k = this->shape->w;
+    int n = other.shape->w;
+
+    int lda = k;
+    int ldb = n;
+    int ldc = n;
+
+    if (transa == CblasTrans) {
+        int lda = m;
+    }
+    if (transb == CblasTrans) {
+        int ldb = k;
+    }
+
+    float* result = (float*) mkl_malloc(m * n * other.shape->n * sizeof(float), MALLOC_ALIGN);
+    float beta = 0;
+    if (bias != nullptr) {
+        Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
+        beta = 1;
+    }
+
+    int in_stride = other.strides->n;
+    int out_stride = m * n;
+    #pragma omp parallel for
+    for (int i = 0; i < other.shape->n; i++) {
+        cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, lda, other.data+(in_stride*i), ldb, beta, result+(out_stride*i), ldc);
+    }
+
+    return *(new Tensor(result, new Shape(other.shape->n, 1, m, n), m * n * other.shape->n));
 }
 
 void Tensor::reshape(int n, int c, int h, int w) {

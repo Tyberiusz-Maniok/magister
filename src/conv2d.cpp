@@ -7,7 +7,7 @@ using namespace lamp;
 
 Conv2d::Conv2d(int input, int output, int kernel, int stride, Activation& activation_fn) : in_c(input), out_c(output),
     activation_fn(activation_fn), kernel(kernel), stride(stride) {
-    this->filters = Tensor::random(new Shape(1, 1, input * kernel * kernel, output));
+    this->filters = Tensor::random(new Shape(1, 1, output, input * kernel * kernel));
     this->bias = nullptr;
 }
 
@@ -81,8 +81,9 @@ Tensor& Conv2d::forward(Tensor& x) {
         input_col = &col;
     }
 
-    col.reshape(1, 1, col.shape->w * col.shape->n, col.shape->c * col.shape->h);
-    Tensor& out = col.matmul(*filters);
+    col.reshape(col.shape->n, 1, col.shape->c * col.shape->h, col.shape->w);
+    // Tensor& out = col.matmul(*filters);
+    Tensor& out = filters->batched_matmul(col);
     out.reshape(n, out_c, out_h, out_w);
     activation_fn.forward(out);
     return out;

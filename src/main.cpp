@@ -14,53 +14,23 @@ using namespace lamp;
 
 int main() {
 
-    Model* model = models::lenet();
+    Tensor* t1 = Tensor::random(new Shape(2, 3, 5, 4));
 
-    // ((Conv2d*) ((Sequential*) model->net )->layers)->filters->print();
+    // t1->print();
 
-    DataLoader* dl = new DataLoader(1);
+    Conv2d* conv2d = new Conv2d(3, 6, 3, 1);
 
-    DataBatch* db = dl->next_batch();
-    Tensor* t1 = db->x;
-    // t1->print_shape();
+    Tensor& out = conv2d->sanity_check(*t1);
+    out.print();
 
-    // Tensor& out = ((Sequential*)model->net)->layers->forward(*t1);
-    // Tensor& out = model->sanity_check(*t1);
-    // Tensor& out2 = model->forward_t(*t1);
+    Tensor& col = conv2d->im2col(*t1);
+    // col.print();
+    // col.print_shape();
 
-    // Conv2d* conv = new Conv2d(1,6,6,1);
-    // Conv2d* conv2 = new Conv2d(6, 6, 6, 1);
 
-    // Sequential* s1 = new Sequential({conv, conv2}, 1);
-    // Tensor& out = conv->sanity_check(*t1);
-    // Tensor& out = s1->sanity_check(*t1);
-    // out.print_shape();
-
-    Linear* lin = new Linear(5,10);
-    lin->name = "lin";
-    StatTracker* st = new StatTracker();
-    lin->stat_tracker = st;
-    Tensor* t2 = Tensor::random(new Shape(1000000,1,1,5));
-    Tensor& o = lin->forward_t(*t2);
-    st->to_csv("test.csv");
-    delete lin;
-    delete st;
-
-    // model->stat_tracker->to_csv("./test.csv");
-
-    delete dl;
-    // delete &out;
-    delete &o;
-    // delete &o1;
-    // delete 
-    // delete &out2;
-    // delete t1;
-    // delete s1;
-    // delete conv;
-    // delete conv2;
-    delete model;
-    delete db->y;
-    delete db;
+    delete &col;
+    delete &out;
+    delete conv2d;
 
     return 0;
 }
