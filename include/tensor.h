@@ -49,6 +49,7 @@ class Tensor {
         float dot(Tensor& other);
         Tensor& matmul(Tensor& other, Tensor* bias = nullptr, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans);
         Tensor& batched_matmul(Tensor& other, Tensor* bias = nullptr, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans);
+        Tensor& avg_grad();
         void reshape(Shape* shape);
         void reshape(int n, int c, int h, int w);
         float sum();

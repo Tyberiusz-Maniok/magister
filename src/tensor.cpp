@@ -37,8 +37,8 @@ Tensor::Tensor(Tensor& other) : size(other.size), shape(new Shape(*(other.shape)
 }
 
 Tensor::~Tensor() {
-    printf("deleting tensor ");
-    print_shape();
+    // printf("deleting tensor ");
+    // print_shape();
     mkl_free(this->data);
     delete this->shape;
     delete this->strides;
@@ -145,10 +145,14 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLA
     int ldc = n;
 
     if (transa == CblasTrans) {
-        int lda = m;
+        m = k;
+        k = this->shape->h;
+        lda = m;
     }
     if (transb == CblasTrans) {
-        int ldb = k;
+        n = other.shape->h;
+        ldc = n;
+        ldb = k;
     }
 
     float* result = (float*) mkl_malloc(m * n * sizeof(float), MALLOC_ALIGN);
@@ -172,10 +176,14 @@ Tensor& Tensor::batched_matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE tran
     int ldc = n;
 
     if (transa == CblasTrans) {
-        int lda = m;
+        m = k;
+        k = this->shape->h;
+        lda = m;
     }
     if (transb == CblasTrans) {
-        int ldb = k;
+        n = other.shape->h;
+        ldc = n;
+        ldb = k;
     }
 
     float* result = (float*) mkl_malloc(m * n * other.shape->n * sizeof(float), MALLOC_ALIGN);
@@ -193,6 +201,23 @@ Tensor& Tensor::batched_matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE tran
     }
 
     return *(new Tensor(result, new Shape(other.shape->n, 1, m, n), m * n * other.shape->n));
+}
+
+Tensor& Tensor::avg_grad() {
+    if (shape->n == 1) {
+        return *(new Tensor(*this));
+    }
+    float* result = (float*) mkl_calloc(shape->c * shape->h * shape->w, sizeof(float), MALLOC_ALIGN);
+
+    #pragma omp parallel for
+    for (int i = 0; i < size / shape->n; i++) {
+        for (int n = 0; n < shape->n; n++) {
+            *(result+i) += *(data+i+(n*strides->n));
+        }
+        *(result+i) /= shape->n;
+    }
+
+    return *(new Tensor(result, new Shape(1, shape->c, shape->h, shape->w)));
 }
 
 void Tensor::reshape(int n, int c, int h, int w) {

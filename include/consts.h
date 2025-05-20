@@ -1,5 +1,5 @@
 #pragma once 
-#define MALLOC_ALIGN 32
+#define MALLOC_ALIGN 64
 #define SEED 123
 #define IMAGE_H 224
 #define IMAGE_W 224

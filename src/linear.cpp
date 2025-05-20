@@ -37,11 +37,17 @@ Tensor& Linear::sanity_check(Tensor& x) {
 
 Tensor& Linear::backward(Tensor& grad, float lr) {
     activation_fn.backward(grad);
+    Tensor& agrad = grad.avg_grad();
+    grad.reshape(1,1, grad.shape->n * grad.shape->c * grad.shape->h, grad.shape->w);
     Tensor& delta_w = input->matmul(grad, nullptr, CblasTrans, CblasNoTrans);
     Tensor& input_grad = grad.matmul(*weights, nullptr, CblasNoTrans, CblasTrans);
 
     weights->mulsub(delta_w, lr);
-    bias->mulsub(grad, lr);
+    bias->mulsub(agrad, lr);
+
+    delete &grad;
+    delete &delta_w;
+    delete &agrad;
 
     return input_grad;
 }

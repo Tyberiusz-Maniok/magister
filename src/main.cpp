@@ -21,16 +21,31 @@ int main() {
     Conv2d* conv2d = new Conv2d(3, 6, 3, 1);
 
     Tensor& out = conv2d->sanity_check(*t1);
-    out.print();
+    // out.print();
 
-    Tensor& col = conv2d->im2col(*t1);
+    Tensor& grad = conv2d->backward(out, 0.1);
+
+    // Tensor& col = conv2d->im2col(*t1);
     // col.print();
     // col.print_shape();
 
 
-    delete &col;
-    delete &out;
+    // delete &col;
+    delete &grad;
+    // delete &out;
     delete conv2d;
+
+    // Tensor* t1 = Tensor::random(new Shape(2, 1, 1, 5));
+    // Linear* lin = new Linear(5,4);
+
+    // Tensor& out = lin->forward(*t1);
+    // out.print_shape();
+    // Tensor& back = lin->backward(out, 0.1);
+    // // back.print();
+
+    // delete &back;
+    // delete &out;
+    // delete lin;
 
     return 0;
 }
