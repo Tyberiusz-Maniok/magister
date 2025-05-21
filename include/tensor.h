@@ -71,4 +71,6 @@ class Tensor {
         static void bias_cpy(float* bias, float* dest, int bias_size, int n);
 };
 
+// #pragma omp declare mapper(Tensor t) map(to: t, t.data[0:t.size])
+
 }

@@ -14,7 +14,7 @@ using namespace lamp;
 
 int main() {
 
-    Tensor* t1 = Tensor::random(new Shape(2, 3, 5, 4));
+    Tensor* t1 = Tensor::random(new Shape(2,3,4,5));
 
     // t1->print();
 

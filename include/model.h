@@ -12,7 +12,7 @@ class Model : public Layer {
         StatTracker* stat_tracker;
         CrossEntorpyLoss* loss = new CrossEntorpyLoss();
 
-        Model(Layer* net, float lr, StatTracker* stat_tracker = nullptr);
+        Model(Layer* net, float lr, StatTracker* stat_tracker);
         ~Model();
 
         Tensor& forward(Tensor& x) override;

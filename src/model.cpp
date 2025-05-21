@@ -30,6 +30,7 @@ void Model::set_train(bool train) {
 }
 
 void Model::fit(DataLoader& data_loader) {
+    sanity_check(*(data_loader.next_batch()->x));
     while (data_loader.has_next()) {
         DataBatch* batch = data_loader.next_batch();
         Tensor& pred = forward(*(batch->x));
