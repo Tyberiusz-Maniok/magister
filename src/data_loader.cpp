@@ -13,7 +13,7 @@ DataLoader::DataLoader(int batch_size) : batch_size(batch_size) {
     this->remaining_size = this->total_size;
 }
 
-DataBatch* DataLoader::next_batch() {
+DataBatchP DataLoader::next_batch() {
     int batch_s = batch_size;
     if (remaining_size < batch_size) {
         batch_s = remaining_size;
@@ -33,9 +33,9 @@ DataBatch* DataLoader::next_batch() {
     y_file.close();
     remaining_size -= batch_s;
 
-    Tensor* x = new Tensor(data_x, new Shape(batch_s, 1, IMAGE_H, IMAGE_W));
-    Tensor* y = new Tensor(data_y, new Shape(batch_s, 1, 1, CLASSES));
-    return new DataBatch(x, y);
+    TensorP x = std::shared_ptr<Tensor>(new Tensor(data_x, new Shape(batch_s, 1, IMAGE_H, IMAGE_W)));
+    TensorP y = std::shared_ptr<Tensor>(new Tensor(data_y, new Shape(batch_s, 1, 1, CLASSES)));
+    return std::shared_ptr<DataBatch>(new DataBatch(x, y));
 }
 
 bool DataLoader::has_next() {

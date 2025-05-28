@@ -16,9 +16,9 @@ class BatchNorm2d : public Layer {
         BatchNorm2d(float epsilon, float mul = 0.9, float bias = 0.1);
         ~BatchNorm2d();
 
-        Tensor& forward(Tensor& x) override;
-        Tensor& sanity_check(Tensor& x) override;
-        Tensor& backward(Tensor& grad, float lr) override;
+        TensorP forward(TensorP x) override;
+        TensorP sanity_check(TensorP x) override;
+        TensorP backward(TensorP grad, float lr) override;
 };
 
 }

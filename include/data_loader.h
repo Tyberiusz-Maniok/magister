@@ -5,15 +5,17 @@
 namespace lamp {
 
 struct DataBatch {
-    Tensor* x;
-    Tensor* y;
+    TensorP x;
+    TensorP y;
 
-    DataBatch(Tensor* x, Tensor* y) : x(x), y(y) {}
+    DataBatch(TensorP x, TensorP y) : x(x), y(y) {}
     // ~DataBatch() {
     //     delete x;
     //     delete y;
     // }
 };
+
+typedef std::shared_ptr<DataBatch> DataBatchP;
 
 class DataLoader {
     public:
@@ -26,7 +28,7 @@ class DataLoader {
 
         DataLoader(int batch_size);
 
-        DataBatch* next_batch();
+        DataBatchP next_batch();
         bool has_next();
 
         static void read_img(std::string filename, float* mem_ptr);

@@ -9,16 +9,16 @@ class Linear : public Layer {
     public:
         // int input;
         // int output;
-        Tensor* weights;
-        Tensor* bias;
+        TensorP weights;
+        TensorP bias;
         Activation& activation_fn;
 
         Linear(int input, int output, Activation& activation_fn=identity);
         ~Linear();
 
-        Tensor& forward(Tensor& x) override;
-        Tensor& sanity_check(Tensor& x) override;
-        Tensor& backward(Tensor& grad, float lr) override;
+        TensorP forward(TensorP x) override;
+        TensorP sanity_check(TensorP x) override;
+        TensorP backward(TensorP grad, float lr) override;
 };
 
 }

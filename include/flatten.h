@@ -11,9 +11,9 @@ class Flatten : public Layer {
 
         Flatten();
 
-        Tensor& forward(Tensor& x) override;
-        Tensor& sanity_check(Tensor& x) override;
-        Tensor& backward(Tensor& grad, float lr) override;
+        TensorP forward(TensorP x) override;
+        TensorP sanity_check(TensorP x) override;
+        TensorP backward(TensorP grad, float lr) override;
 };
 
 }

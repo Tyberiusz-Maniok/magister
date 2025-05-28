@@ -7,8 +7,8 @@ namespace lamp {
 
 class Conv2d : public Layer {
     public:
-        Tensor* filters;
-        Tensor* bias;
+        TensorP filters;
+        TensorP bias;
         int stride;
         int kernel;
         int in_c;
@@ -16,17 +16,17 @@ class Conv2d : public Layer {
         int out_h;
         int out_w;
         Activation& activation_fn;
-        Tensor* input_col;
+        TensorP input_col;
 
         Conv2d(int input, int output, int kernel, int stride, Activation& activation_fn=identity);
         ~Conv2d();
 
-        Tensor& forward(Tensor& x) override;
-        Tensor& sanity_check(Tensor& x) override;
-        Tensor& backward(Tensor& grad, float lr) override;
+        TensorP forward(TensorP x) override;
+        TensorP sanity_check(TensorP x) override;
+        TensorP backward(TensorP grad, float lr) override;
 
-        Tensor& im2col(Tensor& x);
-        Tensor& col2im(Tensor& x, Shape& shape);
+        TensorP im2col(TensorP x);
+        TensorP col2im(TensorP x, Shape* shape);
         void init_bias(Shape* shape);
 };
 

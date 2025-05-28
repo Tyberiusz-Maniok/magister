@@ -11,28 +11,28 @@ Sequential::~Sequential() {
     }
 }
 
-Tensor& Sequential::forward(Tensor& x) {
-    Tensor* out = new Tensor(x);
+TensorP Sequential::forward(TensorP x) {
+    TensorP out = x;
     for (int i = 0; i < layer_n; i++) {
-        out = &(layers[i]->forward(*out));
+        out = layers[i]->forward(out);
     }
-    return *out;
+    return out;
 }
 
-Tensor& Sequential::sanity_check(Tensor& x) {
-    Tensor* out = new Tensor(x);
+TensorP Sequential::sanity_check(TensorP x) {
+    TensorP out = x;
     for (int i = 0; i < layer_n; i++) {
-        out = &(layers[i]->sanity_check(*out));
+        out = layers[i]->sanity_check(out);
     }
-    return *out;
+    return out;
 }
 
-Tensor& Sequential::backward(Tensor& grad, float lr) {
-    Tensor* dgrad = new Tensor(grad);
+TensorP Sequential::backward(TensorP grad, float lr) {
+    TensorP dgrad = grad;
     for (int i = layer_n - 1; i >= 0; i--) {
-        dgrad = &(layers[i]->backward(*dgrad, lr));
+        dgrad = layers[i]->backward(dgrad, lr);
     }
-    return *dgrad;
+    return dgrad;
 }
 
 void Sequential::set_train(bool train) {
@@ -49,26 +49,26 @@ void Sequential::set_stat_tracker(StatTracker* stat_tracker) {
     }
 }
 
-Tensor& Sequential::forward_t(Tensor& x) {
+TensorP Sequential::forward_t(TensorP x) {
     double start, end, time = 0;
-    Tensor* out = new Tensor(x);
+    TensorP out = x;
     for (int i = 0; i < layer_n; i++) {
         double start = omp_get_wtime();
-        out = &(layers[i]->forward_t(*out));
+        out = layers[i]->forward_t(out);
         double end = omp_get_wtime();
     }
     time += end - start;
-    return *out;
+    return out;
 }
 
-Tensor& Sequential::backward_t(Tensor& grad, float lr) {
+TensorP Sequential::backward_t(TensorP grad, float lr) {
     double start, end, time = 0;
-    Tensor* out = new Tensor(grad);
+    TensorP out = grad;
     for (int i = 0; i < layer_n; i++) {
         double start = omp_get_wtime();
-        out = &(layers[i]->backward_t(*out, lr));
+        out = layers[i]->backward_t(out, lr);
         double end = omp_get_wtime();
     }
     time += end - start;
-    return *out;
+    return out;
 }

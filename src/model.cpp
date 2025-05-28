@@ -12,15 +12,15 @@ Model::~Model() {
     delete this->stat_tracker;
 }
 
-Tensor& Model::forward(Tensor& x) {
+TensorP Model::forward(TensorP x) {
     return net->forward(x);
 }
 
-Tensor& Model::sanity_check(Tensor& x) {
+TensorP Model::sanity_check(TensorP x) {
     return net->sanity_check(x);
 }
 
-Tensor& Model::backward(Tensor& grad, float lr) {
+TensorP Model::backward(TensorP grad, float lr) {
     return net->backward(grad, lr);
 }
 
@@ -30,11 +30,11 @@ void Model::set_train(bool train) {
 }
 
 void Model::fit(DataLoader& data_loader) {
-    sanity_check(*(data_loader.next_batch()->x));
+    sanity_check(data_loader.next_batch()->x);
     while (data_loader.has_next()) {
-        DataBatch* batch = data_loader.next_batch();
-        Tensor& pred = forward(*(batch->x));
-        Tensor& cr_loss = loss->loss(pred, *(batch->y));
+        DataBatchP batch = data_loader.next_batch();
+        TensorP pred = forward(batch->x);
+        TensorP cr_loss = loss->loss(pred, batch->y);
         backward(cr_loss, lr);
     }
 }

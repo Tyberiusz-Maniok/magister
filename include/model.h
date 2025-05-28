@@ -15,9 +15,9 @@ class Model : public Layer {
         Model(Layer* net, float lr, StatTracker* stat_tracker);
         ~Model();
 
-        Tensor& forward(Tensor& x) override;
-        Tensor& sanity_check(Tensor& x) override;
-        Tensor& backward(Tensor& grad, float lr) override;
+        TensorP forward(TensorP x) override;
+        TensorP sanity_check(TensorP x) override;
+        TensorP backward(TensorP grad, float lr) override;
         void set_train(bool train) override;
 
         void fit(DataLoader& data_loader);

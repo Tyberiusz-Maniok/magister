@@ -4,8 +4,8 @@
 
 namespace lamp {
 
-// typedef std::function<void(Tensor&)> activ_fn;
-typedef void(*activ_fn)(Tensor&);
+// typedef std::function<void(TensorP)> activ_fn;
+typedef void(*activ_fn)(TensorP);
 
 class Activation {
     public:
@@ -14,12 +14,12 @@ class Activation {
 
         Activation(activ_fn forward_fn , activ_fn backward_fn);
 
-        void forward(Tensor& x);
-        void backward(Tensor& x);
+        void forward(TensorP x);
+        void backward(TensorP x);
 
-        static void f_identity(Tensor& x);
-        static void f_relu(Tensor& x);
-        static void f_relu_backward(Tensor& x);
+        static void f_identity(TensorP x);
+        static void f_relu(TensorP x);
+        static void f_relu_backward(TensorP x);
 };
 
 static Activation identity = Activation(Activation::f_identity, Activation::f_identity);

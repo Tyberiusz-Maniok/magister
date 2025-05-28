@@ -36,6 +36,11 @@ Tensor::Tensor(Tensor& other) : size(other.size), shape(new Shape(*(other.shape)
     std::memcpy(other.data, this->data, other.size * sizeof(float));
 }
 
+Tensor::Tensor(std::shared_ptr<Tensor> other) : size(other->size), shape(new Shape(*(other->shape))), strides(new Shape(*(other->strides))) {
+    this->data = (float*) mkl_malloc(other->size * sizeof(float), MALLOC_ALIGN);
+    std::memcpy(other->data, this->data, other->size * sizeof(float));
+}
+
 Tensor::~Tensor() {
     // printf("deleting tensor ");
     // print_shape();
@@ -112,10 +117,10 @@ Tensor& Tensor::operator*=(float other) {
     return *this;
 }
 
-void Tensor::mulsub(Tensor& other, float mul) {
+void Tensor::mulsub(std::shared_ptr<Tensor> other, float mul) {
     #pragma omp parallel for simd
     for (int i = 0; i < size; i++) {
-        *(data+i) -= *(other.data+i) * mul;
+        *(data+i) -= *(other->data+i) * mul;
     }
 }
 
@@ -135,10 +140,10 @@ float Tensor::dot(Tensor& other) {
     return cblas_sdot(size, data, 1, other.data, 1);
 }
 
-Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLAS_TRANSPOSE transb) {
+std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias, CBLAS_TRANSPOSE transa, CBLAS_TRANSPOSE transb) {
     int m = this->shape->h;
     int k = this->shape->w;
-    int n = other.shape->w;
+    int n = other->shape->w;
 
     int lda = k;
     int ldb = n;
@@ -150,7 +155,7 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLA
         lda = m;
     }
     if (transb == CblasTrans) {
-        n = other.shape->h;
+        n = other->shape->h;
         ldc = n;
         ldb = k;
     }
@@ -161,15 +166,15 @@ Tensor& Tensor::matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLA
         Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
         beta = 1;
     }
-    cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, lda, other.data, ldb, beta, result, ldc);
+    cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, lda, other->data, ldb, beta, result, ldc);
 
-    return *(new Tensor(result, new Shape(1, 1, m, n), m*n));
+    return std::shared_ptr<Tensor>(new Tensor(result, new Shape(1, 1, m, n), m*n));
 }
 
-Tensor& Tensor::batched_matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE transa, CBLAS_TRANSPOSE transb) {
+std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias, CBLAS_TRANSPOSE transa, CBLAS_TRANSPOSE transb) {
     int m = this->shape->h;
     int k = this->shape->w;
-    int n = other.shape->w;
+    int n = other->shape->w;
 
     int lda = k;
     int ldb = n;
@@ -181,31 +186,31 @@ Tensor& Tensor::batched_matmul(Tensor& other, Tensor* bias, CBLAS_TRANSPOSE tran
         lda = m;
     }
     if (transb == CblasTrans) {
-        n = other.shape->h;
+        n = other->shape->h;
         ldc = n;
         ldb = k;
     }
 
-    float* result = (float*) mkl_malloc(m * n * other.shape->n * sizeof(float), MALLOC_ALIGN);
+    float* result = (float*) mkl_malloc(m * n * other->shape->n * sizeof(float), MALLOC_ALIGN);
     float beta = 0;
     if (bias != nullptr) {
         Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
         beta = 1;
     }
 
-    int in_stride = other.strides->n;
+    int in_stride = other->strides->n;
     int out_stride = m * n;
     #pragma omp parallel for
-    for (int i = 0; i < other.shape->n; i++) {
-        cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, lda, other.data+(in_stride*i), ldb, beta, result+(out_stride*i), ldc);
+    for (int i = 0; i < other->shape->n; i++) {
+        cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, lda, other->data+(in_stride*i), ldb, beta, result+(out_stride*i), ldc);
     }
 
-    return *(new Tensor(result, new Shape(other.shape->n, 1, m, n), m * n * other.shape->n));
+    return std::shared_ptr<Tensor>(new Tensor(result, new Shape(other->shape->n, 1, m, n), m * n * other->shape->n));
 }
 
-Tensor& Tensor::avg_grad() {
+std::shared_ptr<Tensor> Tensor::avg_grad() {
     if (shape->n == 1) {
-        return *(new Tensor(*this));
+        return std::shared_ptr<Tensor>(new Tensor(*this));
     }
     float* result = (float*) mkl_calloc(shape->c * shape->h * shape->w, sizeof(float), MALLOC_ALIGN);
 
@@ -217,7 +222,7 @@ Tensor& Tensor::avg_grad() {
         *(result+i) /= shape->n;
     }
 
-    return *(new Tensor(result, new Shape(1, shape->c, shape->h, shape->w)));
+    return std::shared_ptr<Tensor>(new Tensor(result, new Shape(1, shape->c, shape->h, shape->w)));
 }
 
 void Tensor::reshape(int n, int c, int h, int w) {
@@ -325,19 +330,19 @@ void Tensor::print() {
     }
 }
 
-Tensor* Tensor::zeros(Shape* shape_) {
+std::shared_ptr<Tensor> Tensor::zeros(Shape* shape_) {
     int size_ = accum_size(shape_);
     float* data_ = (float*) mkl_calloc(size_, sizeof(float), MALLOC_ALIGN);
 
-    return new Tensor(data_, shape_, size_);
+    return std::shared_ptr<Tensor>(new Tensor(data_, shape_, size_));
 }
 
-Tensor* Tensor::random(Shape* shape_, float low, float high) {
+std::shared_ptr<Tensor> Tensor::random(Shape* shape_, float low, float high) {
     int size_ = accum_size(shape_);
     float* data_ = (float*) mkl_malloc(size_ * sizeof(float), MALLOC_ALIGN);
     global_rand->populate(size_, data_, low, high);
 
-    return new Tensor(data_, shape_, size_);
+    return std::shared_ptr<Tensor>(new Tensor(data_, shape_, size_));
 }
 
 void Tensor::bias_cpy(float* bias, float* dest, int bias_size, int n) {
