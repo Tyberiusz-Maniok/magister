@@ -20,4 +20,6 @@ class MaxPool : public Layer {
         TensorP backward(TensorP grad, float lr) override;
 };
 
+typedef std::shared_ptr<MaxPool> MaxPoolP;
+
 }

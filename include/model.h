@@ -9,18 +9,21 @@ class Model : public Layer {
     public:
         Layer* net;
         float lr;
-        StatTracker* stat_tracker;
         CrossEntorpyLoss* loss = new CrossEntorpyLoss();
 
-        Model(Layer* net, float lr, StatTracker* stat_tracker);
+        Model(Layer* net, float lr, StatTrackerP stat_tracker);
         ~Model();
 
         TensorP forward(TensorP x) override;
         TensorP sanity_check(TensorP x) override;
         TensorP backward(TensorP grad, float lr) override;
+        TensorP forward_t(TensorP x) override;
+        TensorP backward_t(TensorP grad, float lr) override;
         void set_train(bool train) override;
 
-        void fit(DataLoader& data_loader);
+        void fit(DataLoaderP data_loader);
 };
+
+typedef std::shared_ptr<Model> ModelP;
 
 }

@@ -12,4 +12,6 @@ class CrossEntorpyLoss : public Layer {
         TensorP loss(TensorP pred, TensorP target);
 };
 
+typedef std::shared_ptr<CrossEntorpyLoss> CrossEntorpyLossP;
+
 }

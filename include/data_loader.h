@@ -30,9 +30,12 @@ class DataLoader {
 
         DataBatchP next_batch();
         bool has_next();
+        void reset_epoch();
 
         static void read_img(std::string filename, float* mem_ptr);
 };
+
+typedef std::shared_ptr<DataLoader> DataLoaderP;
 
 }
 

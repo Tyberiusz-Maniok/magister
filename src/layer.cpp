@@ -5,16 +5,13 @@ using namespace lamp;
 Layer::Layer() {}
 
 Layer::~Layer() {
-    // if (this->input != nullptr) {
-    //     delete input;
-    // }
 }
 
 void Layer::set_train(bool train) {
     this->train = train;
 }
 
-void Layer::set_stat_tracker(StatTracker* stat_tracker) {
+void Layer::set_stat_tracker(StatTrackerP stat_tracker) {
     this->stat_tracker = stat_tracker;
 }
 

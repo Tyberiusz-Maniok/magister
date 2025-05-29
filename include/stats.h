@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <memory>
 
 namespace lamp {
 
@@ -24,5 +25,6 @@ class StatTracker {
         void to_csv(std::string filename);
 };
 
+typedef std::shared_ptr<StatTracker> StatTrackerP;
 
 }

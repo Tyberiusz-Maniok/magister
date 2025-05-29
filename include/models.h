@@ -14,21 +14,21 @@ namespace lamp {
 namespace models {
 
 static Model* lenet() {
-    Conv2d* conv1 = new Conv2d(1, 6, 6, 1);
+    Conv2dP conv1 = Conv2dP(new Conv2d(1, 6, 6, 1));
     conv1->name = "conv1";
-    MaxPool* maxpool1 = new MaxPool(2);
-    maxpool1-> name = "maxpool1";
-    Conv2d* conv2 = new Conv2d(6, 16, 6, 1);
+    MaxPoolP maxpool1 = MaxPoolP(new MaxPool(2));
+    maxpool1->name = "maxpool1";
+    Conv2dP conv2 = Conv2dP(new Conv2d(6, 16, 6, 1));
     conv2->name = "conv2";
-    MaxPool* maxpool2 = new MaxPool(2);
-    maxpool2-> name = "maxpool2";
-    Flatten* flatten = new Flatten();
+    MaxPoolP maxpool2 = MaxPoolP(new MaxPool(2));
+    maxpool2->name = "maxpool2";
+    FlattenP flatten = FlattenP(new Flatten());
     flatten->name = "flatten";
     // Linear lin1 = new Linear(120);
-    std::vector<Layer*> layers = {conv1, maxpool1, conv2, maxpool2, flatten};
+    std::vector<LayerP> layers = {conv1, maxpool1, conv2, maxpool2, flatten};
     Sequential* lenet = new Sequential(layers, 5);
     lenet->name = "lenet";
-    StatTracker* stat_tracker = new StatTracker();
+    StatTrackerP stat_tracker = StatTrackerP(new StatTracker());
     return new Model(lenet, 0.1, stat_tracker);
 }
 

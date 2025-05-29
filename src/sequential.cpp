@@ -3,12 +3,12 @@
 
 using namespace lamp;
 
-Sequential::Sequential(std::vector<Layer*> layers, int layer_n) : layers(layers), layer_n(layer_n) {}
+Sequential::Sequential(std::vector<LayerP> layers, int layer_n) : layers(layers), layer_n(layer_n) {}
 
 Sequential::~Sequential() {
-    for (int i = 0; i < layer_n; i++) {
-        delete layers[i];
-    }
+    // for (int i = 0; i < layer_n; i++) {
+    //     delete layers[i];
+    // }
 }
 
 TensorP Sequential::forward(TensorP x) {
@@ -42,7 +42,7 @@ void Sequential::set_train(bool train) {
     }
 }
 
-void Sequential::set_stat_tracker(StatTracker* stat_tracker) {
+void Sequential::set_stat_tracker(StatTrackerP stat_tracker) {
     this->stat_tracker = stat_tracker;
     for (int i = 0; i < layer_n; i++) {
         layers[i]->set_stat_tracker(stat_tracker);

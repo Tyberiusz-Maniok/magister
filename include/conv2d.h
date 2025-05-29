@@ -30,4 +30,6 @@ class Conv2d : public Layer {
         void init_bias(Shape* shape);
 };
 
+typedef std::shared_ptr<Conv2d> Conv2dP;
+
 }

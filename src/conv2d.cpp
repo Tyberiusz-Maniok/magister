@@ -12,11 +12,6 @@ Conv2d::Conv2d(int input, int output, int kernel, int stride, Activation& activa
 }
 
 Conv2d::~Conv2d() {
-    // delete this->filters;
-    // delete this->bias;
-    // if (this->input_col != nullptr) {
-    //     delete this->input_col;
-    // }
 }
 
 void Conv2d::init_bias(Shape* shape) {
@@ -36,7 +31,6 @@ TensorP Conv2d::im2col(TensorP x) {
                     for (int kh = 0; kh < kernel; kh++) {
                         for (int kw = 0; kw < kernel; kw++) {
                             *(col_data+col->flat_index(n, c, kh * kernel + kw, h * out_w + w)) = x->at(n, c, h * stride + kh, w * stride + kw);
-                            // int col_idx = ((n * x->shape->c + c) * out_h + (h * stride) + kh) *  out_w + w * stride + kw;
                         }
                     }
                 }
@@ -48,8 +42,8 @@ TensorP Conv2d::im2col(TensorP x) {
 }
 
 TensorP Conv2d::col2im(TensorP x, Shape* shape) {
-    float* im_data = (float*) mkl_calloc(shape->n * shape->c * shape->h * shape->w, sizeof(float), MALLOC_ALIGN);
-    TensorP im = TensorP(new Tensor(im_data, new Shape(*shape)));
+    float* im_data = (float*) mkl_calloc(shape->c * shape->h * shape->w, sizeof(float), MALLOC_ALIGN);
+    TensorP im = TensorP(new Tensor(im_data, new Shape(1, shape->c, shape->h, shape->w)));
     
     #pragma omp parallel for simd collapse(6)
     for (int n = 0; n < x->shape->n; n++) {
@@ -59,8 +53,6 @@ TensorP Conv2d::col2im(TensorP x, Shape* shape) {
                     for (int kh = 0; kh < kernel; kh++) {
                         for (int kw = 0; kw < kernel; kw++) {
                             *(im_data+im->flat_index(n, c, h * stride + kh, w * stride + kw)) += x->at(n, c, kh * kernel + kw, h * out_w + w);
-                            // int col_idx = ((n * x->shape->c + c) * out_h + (h * stride) + kh) *  out_w + w * stride + kw;
-                            // *(im_data+im->flat_index(n, c, h * stride + kh, w * stride + kw)) = x->at(n, c, kh * kernel + kw, h * out_w + w);
                         }
                     }
                 }
@@ -84,7 +76,6 @@ TensorP Conv2d::forward(TensorP x) {
     }
 
     col->reshape(col->shape->n, 1, col->shape->c * col->shape->h, col->shape->w);
-    // TensorP out = col.matmul(*filters);
     TensorP out = filters->batched_matmul(col, this->bias);
     out->reshape(n, out_c, out_h, out_w);
     activation_fn.forward(out);
@@ -113,12 +104,6 @@ TensorP Conv2d::backward(TensorP grad, float lr) {
     bias->mulsub(agrad, lr);
 
     TensorP input_grad = col2im(col_grad, input->shape);
-
-    // delete &grad;
-    // delete &delta_w;
-    // delete &col_grad;
-    // delete &agrad;
-    // delete &ainput_col;
 
     return input_grad;
 }

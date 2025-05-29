@@ -42,6 +42,10 @@ bool DataLoader::has_next() {
     return remaining_size > 0;
 }
 
+void DataLoader::reset_epoch() {
+    this->remaining_size = this->total_size;
+}
+
 void DataLoader::read_img(std::string filename, float* mem_ptr) {
     cv::Mat img = cv::imread(filename, cv::IMREAD_GRAYSCALE);
     img.convertTo(img, CV_32F, 1.0 / 255, 0);

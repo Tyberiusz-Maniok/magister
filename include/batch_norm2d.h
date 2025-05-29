@@ -21,4 +21,6 @@ class BatchNorm2d : public Layer {
         TensorP backward(TensorP grad, float lr) override;
 };
 
+typedef std::shared_ptr<BatchNorm2d> BatchNorm2dP;
+
 }

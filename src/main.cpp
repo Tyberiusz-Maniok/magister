@@ -14,46 +14,16 @@ using namespace lamp;
 
 int main() {
 
-    // Tensor* t1 = Tensor::random(new Shape(20000,3,4,5));
+    DataLoaderP dl = DataLoaderP(new DataLoader(2));
 
-    // // t1->print();
-    // #pragma omp parallel
-    // {
-    // Conv2d* conv2d = new Conv2d(3, 6, 3, 1);
+    Model* m = models::lenet();
+    TensorP x = dl->next_batch()->x;
 
-    // Tensor& out = conv2d->sanity_check(*t1);
-    // // out.print();
+    // x->print_shape();
+    TensorP out = m->sanity_check(x);
 
-    // Tensor& grad = conv2d->forward_t(out);
-
-    // // Tensor& col = conv2d->im2col(*t1);
-    // // col.print();
-    // // col.print_shape();
-
-
-    // // delete &col;
-    // delete &grad;
-    // // delete &out;
-    // delete conv2d;
-    // }
-
-    // Tensor* t1 = Tensor::random(new Shape(2, 1, 1, 5));
-    // Linear* lin = new Linear(5,4);
-
-    // Tensor& out = lin->forward(*t1);
-    // out.print_shape();
-    // Tensor& back = lin->backward(out, 0.1);
-    // // back.print();
-
-    // delete &back;
-    // delete &out;
-    // delete lin;
-
-    // DataLoader* dl = new DataLoader(1);
-
-    // DataBatch* db = dl->next_batch();
-
-    
+    TensorP out1 = m->forward_t(x);
+    // out->print();
 
     return 0;
 }
