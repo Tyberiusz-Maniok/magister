@@ -72,7 +72,7 @@ TensorP Conv2d::forward(TensorP x) {
     int w = x->shape->w;
     TensorP col = im2col(x);
     if (train) {
-        input_col = col;
+        this->input_col = col;
     }
 
     col->reshape(col->shape->n, 1, col->shape->c * col->shape->h, col->shape->w);

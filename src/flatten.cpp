@@ -23,3 +23,11 @@ TensorP Flatten::backward(TensorP grad, float lr) {
     grad->reshape(grad->shape->n, c, h, w);
     return grad;
 }
+
+TensorP Flatten::forward_t(TensorP x) {
+    return forward(x);
+}
+
+TensorP Flatten::backward_t(TensorP grad, float lr) {
+    return backward(grad, lr);
+}

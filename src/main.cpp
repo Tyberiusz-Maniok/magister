@@ -16,13 +16,17 @@ int main() {
 
     DataLoaderP dl = DataLoaderP(new DataLoader(2));
 
-    Model* m = models::lenet();
-    TensorP x = dl->next_batch()->x;
+    Model* m = models::vgg16();
+    // TensorP x = dl->next_batch()->x;
 
     // x->print_shape();
-    TensorP out = m->sanity_check(x);
+    // TensorP out = m->sanity_check(x);
+    // out->print_shape();
 
-    TensorP out1 = m->forward_t(x);
+    m->fit(dl);
+
+    delete m;
+    // TensorP out1 = m->forward_t(x);
     // out->print();
 
     return 0;

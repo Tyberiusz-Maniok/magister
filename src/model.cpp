@@ -39,10 +39,10 @@ void Model::set_train(bool train) {
 
 void Model::fit(DataLoaderP data_loader) {
     sanity_check(data_loader->next_batch()->x);
-    while (data_loader.has_next()) {
+    while (data_loader->has_next()) {
         DataBatchP batch = data_loader->next_batch();
-        TensorP pred = forward(batch->x);
+        TensorP pred = forward_t(batch->x);
         TensorP cr_loss = loss->loss(pred, batch->y);
-        backward(cr_loss, lr);
+        backward_t(cr_loss, lr);
     }
 }

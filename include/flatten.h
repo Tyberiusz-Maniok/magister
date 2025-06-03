@@ -14,6 +14,8 @@ class Flatten : public Layer {
         TensorP forward(TensorP x) override;
         TensorP sanity_check(TensorP x) override;
         TensorP backward(TensorP grad, float lr) override;
+        TensorP forward_t(TensorP x) override;
+        TensorP backward_t(TensorP grad, float lr) override;
 };
 
 typedef std::shared_ptr<Flatten> FlattenP;

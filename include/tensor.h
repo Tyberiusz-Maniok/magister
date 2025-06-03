@@ -65,8 +65,6 @@ class Tensor {
         float variance_from_avg(float avg);
         float variance_from_avg2d(int n, int c, float avg);
 
-        // Tensor backwards();
-
         void print();
         void print_shape();
     
