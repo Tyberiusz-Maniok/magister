@@ -50,25 +50,24 @@ void Sequential::set_stat_tracker(StatTrackerP stat_tracker) {
 }
 
 TensorP Sequential::forward_t(TensorP x) {
-    double start, end, time = 0;
+    double start = omp_get_wtime();
     TensorP out = x;
     for (int i = 0; i < layers.size(); i++) {
-        double start = omp_get_wtime();
         out = layers[i]->forward_t(out);
-        double end = omp_get_wtime();
     }
-    time += end - start;
+    double end = omp_get_wtime();
+    stat_tracker->add(Stats(this->name, end - start));
     return out;
 }
 
 TensorP Sequential::backward_t(TensorP grad, float lr) {
-    double start, end, time = 0;
+    double start = omp_get_wtime();
     TensorP out = grad;
     for (int i = layers.size() - 1; i >= 0; i--) {
-        double start = omp_get_wtime();
         out = layers[i]->backward_t(out, lr);
-        double end = omp_get_wtime();
+        // printf("Layer: %i\n", i);
     }
-    time += end - start;
+    double end = omp_get_wtime();
+    stat_tracker->add(Stats(this->name + "_back", end - start));
     return out;
 }

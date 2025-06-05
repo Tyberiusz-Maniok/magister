@@ -42,8 +42,6 @@ Tensor::Tensor(std::shared_ptr<Tensor> other) : size(other->size), shape(new Sha
 }
 
 Tensor::~Tensor() {
-    // printf("deleting tensor ");
-    // print_shape();
     mkl_free(this->data);
     delete this->shape;
     delete this->strides;

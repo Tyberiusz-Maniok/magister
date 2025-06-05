@@ -88,6 +88,7 @@ static Model* vgg16() {
     std::vector<LayerP> layers = {conv1, conv2, maxpool1, conv3, conv4, maxpool2, conv5, conv6, conv7, maxpool3,
         conv8, conv9, conv10, maxpool4, conv11, conv12, conv13, maxpool5, flatten, lin1, lin2, lin3};
     Sequential* vgg16 = new Sequential(layers, 22);
+    vgg16->name = "vgg16";
     StatTrackerP stat_tracker = StatTrackerP(new StatTracker());
     return new Model(vgg16, 0.1, stat_tracker);
 }
