@@ -25,6 +25,12 @@ int main() {
 
     m->fit(dl);
 
+
+    // DataBatchP db = dl->next_batch();
+    // Conv2dP conv = Conv2dP(new Conv2d(1,3,3,1, relu));
+    // TensorP out = conv->sanity_check(db->x);
+    // TensorP grad = conv->backward(out, 0.1);
+
     delete m;
     // TensorP out1 = m->forward_t(x);
     // out->print();

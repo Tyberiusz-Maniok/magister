@@ -13,7 +13,6 @@ MaxPool::~MaxPool() {
 }
 
 TensorP MaxPool::forward(TensorP x) {
-    // x->print_shape();
     if (train) {
         input = x;
     }
