@@ -65,7 +65,6 @@ TensorP Sequential::backward_t(TensorP grad, float lr) {
     TensorP out = grad;
     for (int i = layers.size() - 1; i >= 0; i--) {
         out = layers[i]->backward_t(out, lr);
-        // printf("Layer: %i\n", i);
     }
     double end = omp_get_wtime();
     stat_tracker->add(Stats(this->name + "_back", end - start));

@@ -96,7 +96,6 @@ TensorP Conv2d::sanity_check(TensorP x) {
 TensorP Conv2d::backward(TensorP grad, float lr) {
     Shape* shp = new Shape(*(input->shape));
     TensorP agrad = grad->avg_grad();
-    input_col->print_shape();
     TensorP ainput_col = this->input_col->avg_grad();
     activation_fn.backward(agrad);
 

@@ -27,8 +27,11 @@ DataBatchP DataLoader::next_batch() {
     #pragma omp parallel for
     for (int i = 0; i < batch_s; i++) {
         read_img("../data/mod/1.jpg", data_x + i * IMAGE_SIZE);
-        std::getline(y_file, buffer);
-        *(data_y + i * CLASSES + std::stoi(buffer)) = 1.0;
+        #pragma omp critical
+        {
+            std::getline(y_file, buffer);
+            *(data_y + i * CLASSES + std::stoi(buffer)) = 1.0;
+        }
     }
     y_file.close();
     remaining_size -= batch_s;

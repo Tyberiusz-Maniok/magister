@@ -14,7 +14,7 @@ using namespace lamp;
 
 int main() {
 
-    DataLoaderP dl = DataLoaderP(new DataLoader(2));
+    DataLoaderP dl = DataLoaderP(new DataLoader(8));
 
     Model* m = models::vgg16();
     // TensorP x = dl->next_batch()->x;

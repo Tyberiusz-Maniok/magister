@@ -52,7 +52,6 @@ TensorP MaxPool::forward(TensorP x) {
         }
     }
 
-    // out->print_shape();
     return out; 
 }
 
