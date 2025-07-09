@@ -4,10 +4,12 @@ project(magister_ex)
 find_package(MKL CONFIG REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(IntelDPCPP REQUIRED)
 #message(STATUS "${MKL_IMPORTED_TARGETS}") #Provides available list of targets based on input
 set(CMAKE_CXX_STANDARD 17)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -fsanitize=address -g")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -fsanitize=address -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -O3 -ffast-math")
 
 file(GLOB_RECURSE SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 add_executable(magister_ex "${SRC}")

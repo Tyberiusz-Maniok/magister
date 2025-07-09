@@ -19,6 +19,7 @@ struct Stats {
 class StatTracker {
     public:
         std::vector<Stats> stats;
+        std::string out_file;
 
         void add(Stats stat);
 

@@ -14,6 +14,8 @@ using namespace lamp;
 
 int main() {
 
+    printf("Starting...\n");
+
     DataLoaderP dl = DataLoaderP(new DataLoader(8));
 
     Model* m = models::vgg16();
@@ -24,6 +26,8 @@ int main() {
     // out->print_shape();
 
     m->fit(dl);
+
+    m->stat_tracker->to_csv("../results/vgg_t4_sep.csv");
 
 
     // DataBatchP db = dl->next_batch();

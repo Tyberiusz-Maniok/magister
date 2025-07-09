@@ -42,8 +42,9 @@ void Model::fit(DataLoaderP data_loader) {
     while (data_loader->has_next()) {
         DataBatchP batch = data_loader->next_batch();
         TensorP pred = forward_t(batch->x);
-        // TensorP cr_loss = loss->loss(pred, batch->y);
-        TensorP cr_loss = pred;
+        TensorP cr_loss = loss->loss(pred, batch->y);
+        // TensorP cr_loss = pred;
         backward_t(cr_loss, lr);
     }
+
 }

@@ -19,7 +19,7 @@ class Sequential : public Layer {
         void set_stat_tracker(StatTrackerP stat_tracker) override;
 
         TensorP forward_t(TensorP x) override;
-        TensorP backward_t(TensorP grad, float lr);
+        TensorP backward_t(TensorP grad, float lr) override;
 };
 
 typedef std::shared_ptr<Sequential> SequentialP;
