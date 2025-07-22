@@ -19,7 +19,7 @@ void Conv2d::init_bias(Shape* shape) {
 }
 
 TensorP Conv2d::im2col(TensorP x) {
-    float* col_data = (float*) mkl_calloc(x->shape->n * out_h * out_w * x->shape->c * kernel * kernel, sizeof(float), MALLOC_ALIGN);
+    float* col_data = (float*) mkl_malloc(x->shape->n * out_h * out_w * x->shape->c * kernel * kernel * sizeof(float), MALLOC_ALIGN);
     Shape* col_shape = new Shape(x->shape->n, x->shape->c, kernel*kernel, out_h*out_w);
     TensorP col = TensorP(new Tensor(col_data, col_shape));
 
@@ -92,7 +92,7 @@ TensorP Conv2d::sanity_check(TensorP x) {
 }
 
 TensorP Conv2d::backward(TensorP grad, float lr) {
-    Shape* shp = new Shape(*(input->shape));
+    // Shape* shp = new Shape(*(input->shape));
     TensorP agrad = grad->avg_grad();
     TensorP ainput_col = this->input_col->avg_grad();
     activation_fn.backward(agrad);
@@ -111,8 +111,8 @@ TensorP Conv2d::backward(TensorP grad, float lr) {
     filters->mulsub(delta_w, lr);
     bias->mulsub(agrad, lr);
 
-    TensorP input_grad = col2im(col_grad, shp);
-    delete shp;
+    TensorP input_grad = col2im(col_grad, new Shape(*(input->shape)));
+    // delete shp;
 
     return input_grad;
 }

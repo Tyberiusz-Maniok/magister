@@ -38,13 +38,19 @@ void Model::set_train(bool train) {
 }
 
 void Model::fit(DataLoaderP data_loader) {
+    // DataBatchP batch = data_loader->next_batch();
+    // TensorP pred = nullptr;
+    // TensorP cr_loss = nullptr;
     sanity_check(data_loader->next_batch()->x);
     while (data_loader->has_next()) {
+        // batch.reset(data_loader->next_batch().get());
+        // pred.reset(forward_t(batch->x).get());
+        // cr_loss.reset(loss->loss(pred, batch->y).get());
         DataBatchP batch = data_loader->next_batch();
         TensorP pred = forward_t(batch->x);
-        TensorP cr_loss = loss->loss(pred, batch->y);
-        // TensorP cr_loss = pred;
-        backward_t(cr_loss, lr);
+        // TensorP cr_loss = loss->loss(pred, batch->y);
+        // backward_t(cr_loss, lr);
+        backward_t(pred, lr);
     }
 
 }

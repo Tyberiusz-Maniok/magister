@@ -11,7 +11,7 @@ using namespace lamp;
 const int BATCH_MULL = 10;
 
 DataLoader::DataLoader(int batch_size) : batch_size(batch_size) {
-    this->total_size = batch_size * BATCH_MULL;
+    this->total_size = DATA_SIZE;
     this->remaining_size = this->total_size;
 }
 
@@ -44,7 +44,7 @@ DataBatchP DataLoader::next_batch() {
 }
 
 bool DataLoader::has_next() {
-    return remaining_size > 0;
+    return remaining_size >= batch_size;
 }
 
 void DataLoader::reset_epoch() {

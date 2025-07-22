@@ -1,6 +1,7 @@
 #include "maxpool.h"
 #include "consts.h"
 #include "mkl.h"
+#include <cstring>
 
 using namespace lamp;
 
@@ -14,15 +15,16 @@ MaxPool::~MaxPool() {
 
 TensorP MaxPool::forward(TensorP x) {
     if (train) {
-        input = x;
+        this->input = x;
     }
 
     float* data = (float*) mkl_malloc(x->shape->n * x->shape->c * out_h * out_w * sizeof(float), MALLOC_ALIGN);
     TensorP out = std::shared_ptr<Tensor>(new Tensor(data, new Shape(x->shape->n, x->shape->c, out_h, out_w)));
 
-    if (train) {
-        this->max_indices = (int*) mkl_malloc(x->shape->n * x->shape->c * out_h * out_w * sizeof(int), MALLOC_ALIGN);
-    }
+    // if (train) {
+        // std::memset(this->max_indices, 0, x->shape->n * x->shape->c * out_h * out_w * sizeof(int));
+        // this->max_indices = (int*) mkl_realloc(this->max_indices, x->shape->n * x->shape->c * out_h * out_w * sizeof(int));
+    // }
 
     # pragma omp parallel for simd collapse(4)
     for (int n = 0; n < x->shape->n; n++) {
@@ -58,6 +60,7 @@ TensorP MaxPool::forward(TensorP x) {
 TensorP MaxPool::sanity_check(TensorP x) {
     this->out_h = (x->shape->h - kernel) / stride + 1;
     this->out_w = (x->shape->w - kernel) / stride + 1;
+    this->max_indices = (int*) mkl_malloc(x->shape->n * x->shape->c * out_h * out_w * sizeof(int), MALLOC_ALIGN);
     return forward(x);
 }
 
