@@ -15,8 +15,12 @@ using namespace lamp;
 int main() {
 
     printf("Starting...\n");
+    #pragma omp parallel master
+    {
+        printf("%i\n", omp_get_num_threads());
+    }
 
-    DataLoaderP dl = DataLoaderP(new DataLoader(8));
+    DataLoaderP dl = DataLoaderP(new DataLoader(16));
 
     Model* m = models::vgg16();
     // TensorP x = dl->next_batch()->x;
@@ -27,7 +31,7 @@ int main() {
 
     m->fit(dl);
 
-    m->stat_tracker->to_csv("../results/vgg_t4_sep.csv");
+    m->stat_tracker->to_csv("../results/vgg_t16_dyn.csv");
 
 
     // DataBatchP db = dl->next_batch();

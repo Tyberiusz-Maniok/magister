@@ -46,19 +46,17 @@ TensorP Conv2d::col2im(TensorP x, Shape* shape) {
     TensorP im = TensorP(new Tensor(im_data, new Shape(1, shape->c, shape->h, shape->w)));
 
     #pragma omp parallel for simd collapse(5)
-    // for (int n = 0; n < x->shape->n; n++) {
-        for (int c = 0; c < in_c; c++) {
-            for (int h = 0; h < out_h; h++) {
-                for (int w = 0; w < out_w; w++) {
-                    for (int kh = 0; kh < kernel; kh++) {
-                        for (int kw = 0; kw < kernel; kw++) {
-                            *(im_data+im->flat_index(0, c, h * stride + kh, w * stride + kw)) += x->at(0, c, kh * kernel + kw, h * out_w + w);
-                        }
+    for (int c = 0; c < in_c; c++) {
+        for (int h = 0; h < out_h; h++) {
+            for (int w = 0; w < out_w; w++) {
+                for (int kh = 0; kh < kernel; kh++) {
+                    for (int kw = 0; kw < kernel; kw++) {
+                        *(im_data+im->flat_index(0, c, h * stride + kh, w * stride + kw)) += x->at(0, c, kh * kernel + kw, h * out_w + w);
                     }
                 }
             }
         }
-    // }
+    }
     return im;
 }
 
