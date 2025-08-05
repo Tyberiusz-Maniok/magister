@@ -44,6 +44,8 @@ class Tensor {
 
         Tensor& operator*=(float other);
 
+        std::shared_ptr<Tensor> add(std::shared_ptr<Tensor> other);
+
         void mulsub(std::shared_ptr<Tensor> other, float mul);
 
         int flat_index(int n, int c, int h, int w);

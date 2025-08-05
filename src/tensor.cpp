@@ -115,6 +115,15 @@ Tensor& Tensor::operator*=(float other) {
     return *this;
 }
 
+std::shared_ptr<Tensor> Tensor::add(std::shared_ptr<Tensor> other) {
+    Tensor* result = new Tensor(*this);
+    #pragma omp parallel for simd
+    for (int i=0; i < this->size; i++) {
+        *(data+i) += *(other->data+i);
+    }
+    return std::shared_ptr<Tensor>(result);
+}
+
 void Tensor::mulsub(std::shared_ptr<Tensor> other, float mul) {
     #pragma omp parallel for simd
     for (int i = 0; i < size; i++) {

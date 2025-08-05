@@ -14,4 +14,6 @@ class Residual : public Layer {
         TensorP backward(TensorP grad, float lr) override;
 };
 
+typedef std::shared_ptr<Residual> ResidualP;
+
 }

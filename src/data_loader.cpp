@@ -8,11 +8,11 @@
 
 using namespace lamp;
 
-const int BATCH_MULL = 10;
+const int BATCH_MULL = 1000;
 
 DataLoader::DataLoader(int batch_size) : batch_size(batch_size) {
     this->total_size = DATA_SIZE;
-    this->remaining_size = this->total_size;
+    this->remaining_size = batch_size * BATCH_MULL;
 }
 
 DataBatchP DataLoader::next_batch() {

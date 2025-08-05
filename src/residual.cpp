@@ -5,8 +5,7 @@ using namespace lamp;
 Residual::Residual(LayerP block) : block(block) {}
 
 TensorP Residual::forward(TensorP x) {
-    // return block->forward(x) + x.get();
-    return block->forward(x);
+    return block->forward(x)->add(x);
 }
 
 TensorP Residual::sanity_check(TensorP x) {
@@ -14,5 +13,6 @@ TensorP Residual::sanity_check(TensorP x) {
 }
 
 TensorP Residual::backward(TensorP grad, float lr) {
-    return grad;
+    TensorP block_grad = block->backward(grad, lr);
+    return grad->add(block_grad);
 }

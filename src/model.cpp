@@ -38,14 +38,11 @@ void Model::set_train(bool train) {
 }
 
 void Model::fit(DataLoaderP data_loader) {
-    // DataBatchP batch = data_loader->next_batch();
-    // TensorP pred = nullptr;
-    // TensorP cr_loss = nullptr;
     sanity_check(data_loader->next_batch()->x);
+    int batch_num = 0;
     while (data_loader->has_next()) {
-        // batch.reset(data_loader->next_batch().get());
-        // pred.reset(forward_t(batch->x).get());
-        // cr_loss.reset(loss->loss(pred, batch->y).get());
+        batch_num++;
+        printf("Processing batch number: %i", batch_num);
         DataBatchP batch = data_loader->next_batch();
         TensorP pred = forward_t(batch->x);
         // TensorP cr_loss = loss->loss(pred, batch->y);
