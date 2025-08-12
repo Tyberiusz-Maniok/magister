@@ -173,6 +173,12 @@ std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::share
         Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
         beta = 1;
     }
+    // float* tdata = this->data;
+    // float* odata = this->data;
+
+    // #pragma omp target data map(to:tdata[0:this->size], odata[0:other->size]) map(tofrom:result[0:m*n]) device(0)
+        // #pragma omp target variant dispatch device(0) use_device_ptr(tdata, odata, result)
+        // #pragma omp dispatch device(0)
     cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, lda, other->data, ldb, beta, result, ldc);
 
     return std::shared_ptr<Tensor>(new Tensor(result, new Shape(1, 1, m, n), m*n));

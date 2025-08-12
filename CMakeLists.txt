@@ -1,23 +1,45 @@
 cmake_minimum_required(VERSION 3.13)
 enable_testing()
-project(magister_ex)
+project(magister_ex LANGUAGES CXX CUDA)
+
+if(NOT DEFINED CMAKE_CUDA_COMPILER OR CMAKE_CUDA_COMPILER STREQUAL "")
+  set(CMAKE_CUDA_COMPILER nvcc CACHE FILEPATH "CUDA compiler" FORCE)
+endif()
+
+find_package(CUDAToolkit REQUIRED)
 find_package(MKL CONFIG REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(IntelDPCPP REQUIRED)
+# find_package(IntelDPCPP REQUIRED)
+
+if(NOT CUDA_ARCH STREQUAL "auto")
+  if(CUDA_ARCH MATCHES "^sm_")
+    set(_arch_flag "-arch=${CUDA_ARCH}")
+  else()
+    set(_arch_flag "-arch=sm_${CUDA_ARCH}")
+  endif()
+else()
+  set(_arch_flag "")
+endif()
+
 #message(STATUS "${MKL_IMPORTED_TARGETS}") #Provides available list of targets based on input
 set(CMAKE_CXX_STANDARD 17)
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -fsanitize=address -g")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -fsanitize=address -g")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -O3 -ffast-math")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -O3 -ffast-math -g")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -O3 -ffast-math -g") 
 
 file(GLOB_RECURSE SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 add_executable(magister_ex "${SRC}")
 
 target_compile_options(magister_ex PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
 target_include_directories(magister_ex PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_libraries(magister_ex PUBLIC $<LINK_ONLY:MKL::MKL> $<$<CONFIG:Release>:OpenMP::OpenMP_CXX> ${OpenCV_LIBS})
+target_link_libraries(magister_ex PUBLIC $<LINK_ONLY:MKL::MKL> $<$<CONFIG:Release>:OpenMP::OpenMP_CXX> ${OpenCV_LIBS} CUDA::cublas CUDA::cudart)
+
+set_target_properties(magister_ex PROPERTIES
+  CUDA_SEPARABLE_COMPILATION ON
+  POSITION_INDEPENDENT_CODE ON
+)
 
 # target_compile_options(magister_ex PRIVATE -Werror -Wall -Wextra)
 

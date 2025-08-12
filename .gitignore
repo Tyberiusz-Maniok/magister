@@ -3,3 +3,6 @@
 data/
 results/
 prof/
+test
+sycl_test.cpp
+notes

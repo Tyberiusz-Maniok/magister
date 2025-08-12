@@ -42,7 +42,7 @@ void Model::fit(DataLoaderP data_loader) {
     int batch_num = 0;
     while (data_loader->has_next()) {
         batch_num++;
-        printf("Processing batch number: %i", batch_num);
+        printf("Processing batch number: %i\n", batch_num);
         DataBatchP batch = data_loader->next_batch();
         TensorP pred = forward_t(batch->x);
         // TensorP cr_loss = loss->loss(pred, batch->y);

@@ -18,12 +18,16 @@ int main() {
     #pragma omp parallel master
     {
         printf("%i\n", omp_get_num_threads());
+        // printf("%i\n", omp_get_num_devices());
+        // omp_set_default_device(2);
+        // printf("%i\n", omp_get_num_devices());
+        // printf("%i\n", omp_get_device_num());
     }
 
     DataLoaderP dl = DataLoaderP(new DataLoader(16));
 
-    // Model* m = models::vgg16();
-    Model* m = models::resnet18();
+    Model* m = models::vgg16();
+    // Model* m = models::resnet18();
     // TensorP x = dl->next_batch()->x;
 
     // x->print_shape();
