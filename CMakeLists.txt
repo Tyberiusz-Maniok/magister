@@ -9,8 +9,10 @@ project(magister_ex LANGUAGES CXX CUDA)
 find_package(CUDAToolkit REQUIRED)
 find_package(MKL CONFIG REQUIRED)
 find_package(OpenMP REQUIRED)
-find_package(OpenCV REQUIRED)
+# find_package(OpenCV REQUIRED)
 # find_package(IntelDPCPP REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(IMAGEMAGICK REQUIRED ImageMagick++)
 
 #message(STATUS "${MKL_IMPORTED_TARGETS}") #Provides available list of targets based on input
 set(CMAKE_CXX_STANDARD 17)
@@ -31,8 +33,9 @@ set_target_properties(magister_ex PROPERTIES
 )
 
 target_compile_options(magister_ex PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
-target_include_directories(magister_ex PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_libraries(magister_ex PUBLIC $<LINK_ONLY:MKL::MKL> CUDA::cublas CUDA::cudart $<$<CONFIG:Release>:OpenMP::OpenMP_CXX> ${OpenCV_LIBS})
+target_include_directories(magister_ex PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES> ${IMAGEMAGICK_INCLUDE_DIRS})
+# target_link_libraries(magister_ex PUBLIC $<LINK_ONLY:MKL::MKL> CUDA::cublas CUDA::cudart $<$<CONFIG:Release>:OpenMP::OpenMP_CXX> ${OpenCV_LIBS})
+target_link_libraries(magister_ex PUBLIC $<LINK_ONLY:MKL::MKL> CUDA::cublas CUDA::cudart $<$<CONFIG:Release>:OpenMP::OpenMP_CXX> ${IMAGEMAGICK_LIBRARIES})
 
 # target_compile_options(magister_ex PRIVATE -Werror -Wall -Wextra)
 
