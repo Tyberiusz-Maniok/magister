@@ -36,7 +36,7 @@ int main() {
 
     m->fit(dl);
 
-    m->stat_tracker->to_csv("../results/resnet_t1_dyn.csv");
+    m->stat_tracker->to_csv("../results/t16.csv");
 
 
     // DataBatchP db = dl->next_batch();

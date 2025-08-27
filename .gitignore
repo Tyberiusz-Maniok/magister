@@ -2,7 +2,7 @@
 **/build/
 data/
 results/
-prof/
+perf/
 test
 sycl_test.cpp
 notes

@@ -32,7 +32,8 @@ DataBatchP DataLoader::next_batch() {
         #pragma omp critical
         {
             std::getline(y_file, buffer);
-            *(data_y + i * CLASSES + std::stoi(buffer)) = 1.0;
+            // *(data_y + i * CLASSES + std::stoi(buffer)) = 1.0;
+            *(data_y + i * CLASSES + rand() % 10) =  1.0;
         }
     }
     y_file.close();
