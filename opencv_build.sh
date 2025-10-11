@@ -15,10 +15,10 @@ cd $SRC_DIR/build
 cmake -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_INSTALL_PREFIX=$INSTALL_DIR \
       -D OPENCV_EXTRA_MODULES_PATH=$SRC_DIR/opencv_contrib/modules \
-      -D WITH_CUDA=ON \
+      -D WITH_CUDA=OFF \
       -D ENABLE_FAST_MATH=ON \
       -D CUDA_FAST_MATH=ON \
-      -D WITH_CUBLAS=ON \
+      -D WITH_CUBLAS=OFF \
       -D CUDA_ARCH_BIN=8.0 \
       -D CUDA_ARCH_PTX=8.0 \
       -D BUILD_opencv_cudacodec=ON \

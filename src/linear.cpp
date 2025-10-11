@@ -39,8 +39,8 @@ TensorP Linear::backward(TensorP grad, float lr) {
     activation_fn.backward(grad);
     TensorP agrad = grad->avg_grad();
     grad->reshape(1,1, grad->shape->n * grad->shape->c * grad->shape->h, grad->shape->w);
-    TensorP delta_w = input->matmul(grad, nullptr, CblasTrans, CblasNoTrans);
-    TensorP input_grad = grad->matmul(weights, nullptr, CblasNoTrans, CblasTrans);
+    TensorP delta_w = input->matmul(grad, nullptr, CUBLAS_OP_T, CUBLAS_OP_N);
+    TensorP input_grad = grad->matmul(weights, nullptr, CUBLAS_OP_N, CUBLAS_OP_T);
 
     weights->mulsub(delta_w, lr);
     bias->mulsub(agrad, lr);

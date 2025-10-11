@@ -2,6 +2,7 @@
 #include "rng.h"
 #include "mkl.h"
 #include <memory>
+#include <cublas_v2.h>
 
 namespace lamp {
 
@@ -53,8 +54,8 @@ class Tensor {
         float operator[](int idx);
 
         float dot(Tensor& other);
-        std::shared_ptr<Tensor> matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias = nullptr, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans);
-        std::shared_ptr<Tensor> batched_matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias = nullptr, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans);
+        std::shared_ptr<Tensor> matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias = nullptr, cublasOperation_t transa = CUBLAS_OP_N, cublasOperation_t transb = CUBLAS_OP_N);
+        std::shared_ptr<Tensor> batched_matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias = nullptr, cublasOperation_t transa = CUBLAS_OP_N, cublasOperation_t transb = CUBLAS_OP_N);
         std::shared_ptr<Tensor> avg_grad();
         void reshape(Shape* shape);
         void reshape(int n, int c, int h, int w);

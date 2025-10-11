@@ -102,8 +102,8 @@ TensorP Conv2d::backward(TensorP grad, float lr) {
 
     ainput_col->reshape(1, 1, ainput_col->shape->c * ainput_col->shape->h, ainput_col->shape->w);
     agrad->reshape(1, 1, agrad->shape->c, agrad->shape->h * agrad->shape->w);
-    TensorP delta_w = agrad->matmul(ainput_col, nullptr, CblasNoTrans, CblasTrans);
-    TensorP col_grad = filters->matmul(agrad, nullptr, CblasTrans);
+    TensorP delta_w = agrad->matmul(ainput_col, nullptr, CUBLAS_OP_N, CUBLAS_OP_T);
+    TensorP col_grad = filters->matmul(agrad, nullptr, CUBLAS_OP_T);
 
     ainput_col->reshape(1, col_c, col_h, ainput_col->shape->w);
     col_grad->reshape(1, ainput_col->shape->c, ainput_col->shape->h, ainput_col->shape->w);

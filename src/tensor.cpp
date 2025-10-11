@@ -147,7 +147,26 @@ float Tensor::dot(Tensor& other) {
     return cblas_sdot(size, data, 1, other.data, 1);
 }
 
-std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias, CBLAS_TRANSPOSE transa, CBLAS_TRANSPOSE transb) {
+std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias, cublasOperation_t transa, cublasOperation_t transb) {
+    // if (transa == CUBLAS_OP_T) {
+    //     transa = CUBLAS_OP_N;
+    //     transb = CUBLAS_OP_T;
+    // }
+    // if (transb == CUBLAS_OP_T) {
+    //     transb = CUBLAS_OP_N;
+    //     transa = CUBLAS_OP_T;
+    // }
+    if (transa == CUBLAS_OP_N) {
+        transa = CUBLAS_OP_T;
+    } else {
+        transa = CUBLAS_OP_N;
+    }
+    if (transb == CUBLAS_OP_N) {
+        transb = CUBLAS_OP_T;
+    } else {
+        transb = CUBLAS_OP_N;
+    }
+
     int m = this->shape->h;
     int k = this->shape->w;
     int n = other->shape->w;
@@ -156,12 +175,12 @@ std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::share
     int ldb = n;
     int ldc = n;
 
-    if (transa == CblasTrans) {
+    if (transa == CUBLAS_OP_N) {
         m = k;
         k = this->shape->h;
         lda = m;
     }
-    if (transb == CblasTrans) {
+    if (transb == CUBLAS_OP_N) {
         n = other->shape->h;
         ldc = n;
         ldb = k;
@@ -169,22 +188,50 @@ std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::share
 
     float* result = (float*) mkl_malloc(m * n * sizeof(float), MALLOC_ALIGN);
     float beta = 0;
+    float alpha = 1;
     if (bias != nullptr) {
         Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
         beta = 1;
     }
-    // float* tdata = this->data;
-    // float* odata = this->data;
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+    float* tdata = this->data;
+    float* odata = this->data;
 
     // #pragma omp target data map(to:tdata[0:this->size], odata[0:other->size]) map(tofrom:result[0:m*n]) device(0)
-        // #pragma omp target variant dispatch device(0) use_device_ptr(tdata, odata, result)
-        // #pragma omp dispatch device(0)
-    cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, lda, other->data, ldb, beta, result, ldc);
+    //     #pragma omp target variant dispatch device(0) use_device_ptr(tdata, odata, result)
+    //     #pragma omp dispatch device(0)
+    #pragma omp target data map(to:tdata[0:this->size], odata[0:other->size]) map(tofrom:result[0:m*n]) device(0)
+    {
+        cublasSgemm(handle, transa, transb, m, n, k, &alpha, tdata, lda, odata, ldb, &beta, result, ldc);
+    }
+    
+
+    cublasDestroy(handle);
 
     return std::shared_ptr<Tensor>(new Tensor(result, new Shape(1, 1, m, n), m*n));
 }
 
-std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias, CBLAS_TRANSPOSE transa, CBLAS_TRANSPOSE transb) {
+std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias, cublasOperation_t transa, cublasOperation_t transb) {
+    // if (transa == CUBLAS_OP_T) {
+    //     transa = CUBLAS_OP_N;
+    //     transb = CUBLAS_OP_T;
+    // }
+    // if (transb == CUBLAS_OP_T) {
+    //     transb = CUBLAS_OP_N;
+    //     transa = CUBLAS_OP_T;
+    // }
+    if (transa == CUBLAS_OP_N) {
+        transa = CUBLAS_OP_T;
+    } else {
+        transa = CUBLAS_OP_N;
+    }
+    if (transb == CUBLAS_OP_N) {
+        transb = CUBLAS_OP_T;
+    } else {
+        transb = CUBLAS_OP_N;
+    }
+
     int m = this->shape->h;
     int k = this->shape->w;
     int n = other->shape->w;
@@ -193,12 +240,12 @@ std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, st
     int ldb = n;
     int ldc = n;
 
-    if (transa == CblasTrans) {
+    if (transa == CUBLAS_OP_N) {
         m = k;
         k = this->shape->h;
         lda = m;
     }
-    if (transb == CblasTrans) {
+    if (transb == CUBLAS_OP_N) {
         n = other->shape->h;
         ldc = n;
         ldb = k;
@@ -206,6 +253,7 @@ std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, st
 
     float* result = (float*) mkl_malloc(m * n * other->shape->n * sizeof(float), MALLOC_ALIGN);
     float beta = 0;
+    float alpha = 1;
     if (bias != nullptr) {
         Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
         beta = 1;
@@ -213,10 +261,16 @@ std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, st
 
     int in_stride = other->strides->n;
     int out_stride = m * n;
+
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+
     #pragma omp parallel for
     for (int i = 0; i < other->shape->n; i++) {
-        cblas_sgemm(CblasRowMajor, transa, transb, m, n, k, 1, this->data, lda, other->data+(in_stride*i), ldb, beta, result+(out_stride*i), ldc);
+        cublasSgemm(handle, transa, transb, m, n, k, &alpha, this->data, lda, other->data+(in_stride*i), ldb, &beta, result+(out_stride*i), ldc);
     }
+
+    cublasDestroy(handle);
 
     return std::shared_ptr<Tensor>(new Tensor(result, new Shape(other->shape->n, 1, m, n), m * n * other->shape->n));
 }
