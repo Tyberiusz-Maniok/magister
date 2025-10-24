@@ -4,7 +4,7 @@
 #include <fstream>
 #include "mkl.h"
 // #include <opencv2/opencv.hpp>
-#include <Magick++.h>
+// #include <Magick++.h>
 #include <cstring>
 #include <omp.h>
 
@@ -61,25 +61,25 @@ void DataLoader::read_img(std::string filename, float* mem_ptr) {
     // std::memcpy(mem_ptr, img.data, img.size().height * img.size().width * sizeof(float));
     // img.release();
 
-    Magick::Image img;
-    img.read(filename);
+    // Magick::Image img;
+    // img.read(filename);
 
     // Convert to grayscale explicitly
-    img.type(Magick::GrayscaleType);
+    // img.type(Magick::GrayscaleType);
 
     // Ensure pixels are in a known depth (8-bit is fine)
-    img.depth(8);
+    // img.depth(8);
 
     // Get dimensions
-    size_t width = img.columns();
-    size_t height = img.rows();
+    // size_t width = img.columns();
+    // size_t height = img.rows();
 
     // Extract pixel data into an array of unsigned chars (grayscale 0–255)
-    std::vector<unsigned char> pixels(width * height);
-    img.write(0, 0, width, height, "I", Magick::CharPixel, pixels.data());
+    // std::vector<unsigned char> pixels(width * height);
+    // img.write(0, 0, width, height, "I", Magick::CharPixel, pixels.data());
 
     // Normalize to float in [0, 1]
-    for (size_t i = 0; i < pixels.size(); i++) {
-        mem_ptr[i] = static_cast<float>(pixels[i]) / 255.0f;
-    }
+    // for (size_t i = 0; i < pixels.size(); i++) {
+    //     mem_ptr[i] = static_cast<float>(pixels[i]) / 255.0f;
+    // }
 }

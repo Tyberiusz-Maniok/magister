@@ -102,3 +102,8 @@ if(OpenMP_CXX_FOUND)
     )
     target_link_libraries(magister_ex PRIVATE OpenMP::OpenMP_CXX)
 endif()
+
+set_target_properties(magister_ex PROPERTIES
+    BUILD_RPATH "/opt/llvm_a/lib/x86_64-unknown-linux-gnu"
+    INSTALL_RPATH "/opt/llvm_/lib/x86_64-unknown-linux-gnu"
+)
