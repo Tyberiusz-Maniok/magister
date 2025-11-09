@@ -4,9 +4,9 @@ project(magister_ex LANGUAGES CXX)
 
 # set(CMAKE_C_COMPILER "/usr/local/bin/clang")
 # set(CMAKE_CXX_COMPILER "/usr/local/bin/clang++")
-set(CMAKE_C_COMPILER "/opt/llvm_a/bin/clang")
-set(CMAKE_CXX_COMPILER "/opt/llvm_a/bin/clang++")
-# set(CMAKE_LINKER "/opt/llvm_a/bin/lld")
+set(CMAKE_C_COMPILER "/opt/llvm_rl/bin/clang")
+set(CMAKE_CXX_COMPILER "/opt/llvm_rl/bin/clang++")
+# set(CMAKE_LINKER "/opt/llvm_rl/bin/lld")
 # set(CMAKE_LINKER_TYPE LLD)
 
 
@@ -24,8 +24,8 @@ set(CMAKE_CXX_STANDARD 17)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math --libomptarget-nvptx-bc-path=/home/tyberiuszm/Projects/llvm-project/build_2/lib/libomptarget-nvptx.bc")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math --libomptarget-nvptx-bc-path=/opt/llvm_a/lib/nvptx64-nvidia-cuda/libomptarget-nvptx.bc")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g --libomptarget-nvptx-bc-path=/opt/llvm_a/lib/nvptx64-nvidia-cuda/libomptarget-nvptx.bc -stdlib=libc++ -I/usr/include/c++/v1 -fuse-ld=/opt/llvm_a/bin/ld.lld")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math --libomptarget-nvptx-bc-path=/opt/llvm_rl/lib/nvptx64-nvidia-cuda/libomptarget-nvptx.bc")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -gdwarf-4 --libomptarget-nvptx-bc-path=/opt/llvm_rl/lib/nvptx64-nvidia-cuda/libomptarget-nvptx.bc -stdlib=libc++ -I/usr/include/c++/v1 -fuse-ld=/opt/llvm_rl/bin/ld.lld")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fcf-protection=none")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fcf-protection=none -foffload=nvptx-none -march=sm_80")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -g -fsanitize=address")
@@ -49,7 +49,7 @@ target_include_directories(magister_ex PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFA
 
 find_library(OMPTARGET_LIB
   NAMES omptarget libomptarget
-  PATHS /opt/llvm_a/lib /usr/local/lib /usr/lib
+  PATHS /opt/llvm_rl/lib /usr/local/lib /usr/lib
   NO_DEFAULT_PATH
 )
 
@@ -57,12 +57,12 @@ if(OMPTARGET_LIB)
   message(STATUS "Found libomptarget: ${OMPTARGET_LIB}")
   target_link_libraries(magister_ex PRIVATE ${OMPTARGET_LIB})
   # Ensure the runtime path is set so loader can find the lib at run-time
-  target_link_options(magister_ex PRIVATE "-Wl,-rpath,/opt/llvm_a/lib")
+  target_link_options(magister_ex PRIVATE "-Wl,-rpath,/opt/llvm_rl/lib")
 else()
   message(WARNING "libomptarget not found. Link failures for OpenMP offload symbols are likely.")
 endif()
 
-target_link_libraries(magister_ex PUBLIC $<LINK_ONLY:MKL::MKL> CUDA::cublas CUDA::cudart $<$<CONFIG:Release>:OpenMP::OpenMP_CXX> ${IMAGEMAGICK_LIBRARIES} -L/opt/llvm_a/lib -lomptarget)
+target_link_libraries(magister_ex PUBLIC $<LINK_ONLY:MKL::MKL> CUDA::cublas CUDA::cudart $<$<CONFIG:Release>:OpenMP::OpenMP_CXX> ${IMAGEMAGICK_LIBRARIES} -L/opt/llvm_rl/lib -lomptarget)
 target_include_directories(magister_ex PUBLIC
     ${IMAGEMAGICK_INCLUDE_DIRS}
 )
@@ -73,7 +73,7 @@ target_link_libraries(magister_ex PUBLIC
     OpenMP::OpenMP_CXX
     ${IMAGEMAGICK_LIBRARIES}
 )
-target_link_options(magister_ex PRIVATE "-Wl,-rpath,/opt/llvm_a/lib")
+target_link_options(magister_ex PRIVATE "-Wl,-rpath,/opt/llvm_rl/lib")
 
 # target_compile_options(magister_ex PRIVATE -Werror -Wall -Wextra)
 
@@ -104,6 +104,6 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 set_target_properties(magister_ex PROPERTIES
-    BUILD_RPATH "/opt/llvm_a/lib/x86_64-unknown-linux-gnu"
-    INSTALL_RPATH "/opt/llvm_/lib/x86_64-unknown-linux-gnu"
+    BUILD_RPATH "/opt/llvm_rl/lib/x86_64-unknown-linux-gnu"
+    INSTALL_RPATH "/opt/llvm_rl/lib/x86_64-unknown-linux-gnu"
 )
