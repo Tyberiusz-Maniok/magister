@@ -2,7 +2,7 @@
 #include "consts.h"
 #include <iostream>
 #include <fstream>
-#include "mkl.h"
+#include <cstring>
 // #include <opencv2/opencv.hpp>
 // #include <Magick++.h>
 #include <cstring>
@@ -22,8 +22,9 @@ DataBatchP DataLoader::next_batch() {
     if (remaining_size < batch_size) {
         batch_s = remaining_size;
     }
-    float* data_x = (float*) mkl_malloc(batch_s * IMAGE_SIZE * sizeof(float), MALLOC_ALIGN);
-    float* data_y = (float*) mkl_calloc(batch_s * CLASSES, sizeof(float), MALLOC_ALIGN);
+    float* data_x = (float*) aligned_alloc(MALLOC_ALIGN, batch_s * IMAGE_SIZE * sizeof(float));
+    float* data_y = (float*) aligned_alloc(MALLOC_ALIGN, batch_s * CLASSES * sizeof(float));
+    memset(data_y, 0, batch_s * CLASSES * sizeof(float));
 
     std::ifstream y_file(CLASS_FILE);
     std::string buffer;

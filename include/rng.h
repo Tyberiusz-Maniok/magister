@@ -1,12 +1,13 @@
 #pragma once
-#include <mkl_vsl.h>
+#include <random>
 #include "consts.h"
 
 namespace lamp {
 
 class RandomGen {
     private:
-        VSLStreamStatePtr stream;
+        std::mt19937 generator;
+        std::uniform_real_distribution<float> distribution;
 
     public:
         RandomGen(int seed);

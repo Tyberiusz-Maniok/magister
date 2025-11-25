@@ -1,8 +1,14 @@
 #pragma once
 #include "rng.h"
-#include "mkl.h"
 #include <memory>
-#include <cublas_v2.h>
+
+// Forward declare CUDA enum type to avoid including cublas_v2.h in header
+// (The actual include is in tensor.cpp)
+#ifndef CUBLAS_API_H_
+enum cublasOperation_t : int;
+constexpr cublasOperation_t CUBLAS_OP_N = static_cast<cublasOperation_t>(0);  // Non-transposed
+constexpr cublasOperation_t CUBLAS_OP_T = static_cast<cublasOperation_t>(1);  // Transposed
+#endif
 
 namespace lamp {
 

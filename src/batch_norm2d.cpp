@@ -14,10 +14,10 @@ TensorP BatchNorm2d::forward(TensorP x) {
         this->input = x;
     }
 
-    float* avgs = (float*) mkl_malloc(x->shape->n * x->shape->c * sizeof(float), MALLOC_ALIGN);
-    float* stds = (float*) mkl_malloc(x->shape->n * x->shape->c * sizeof(float), MALLOC_ALIGN);
+    float* avgs = (float*) aligned_alloc(MALLOC_ALIGN, x->shape->n * x->shape->c * sizeof(float));
+    float* stds = (float*) aligned_alloc(MALLOC_ALIGN, x->shape->n * x->shape->c * sizeof(float));
 
-    float* out = (float*) mkl_malloc(x->size * sizeof(float), MALLOC_ALIGN);
+    float* out = (float*) aligned_alloc(MALLOC_ALIGN, x->size * sizeof(float));
 
     #pragma omp parallel for collapse(2)
     for (int n = 0; n < x->shape->n; n++) {

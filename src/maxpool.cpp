@@ -1,6 +1,6 @@
 #include "maxpool.h"
 #include "consts.h"
-#include "mkl.h"
+#include <cstring>
 #include <cstring>
 
 using namespace lamp;
@@ -10,7 +10,7 @@ MaxPool::MaxPool(int kernel) : kernel(kernel), stride(kernel) {}
 MaxPool::MaxPool(int kernel, int stride) : kernel(kernel), stride(stride) {}
 
 MaxPool::~MaxPool() {
-    mkl_free(this->max_indices);
+    free(this->max_indices);
 }
 
 TensorP MaxPool::forward(TensorP x) {
@@ -18,7 +18,7 @@ TensorP MaxPool::forward(TensorP x) {
         this->input = x;
     }
 
-    float* data = (float*) mkl_malloc(x->shape->n * x->shape->c * out_h * out_w * sizeof(float), MALLOC_ALIGN);
+    float* data = (float*) aligned_alloc(MALLOC_ALIGN, x->shape->n * x->shape->c * out_h * out_w * sizeof(float));
     TensorP out = std::shared_ptr<Tensor>(new Tensor(data, new Shape(x->shape->n, x->shape->c, out_h, out_w)));
 
     // if (train) {
@@ -60,12 +60,13 @@ TensorP MaxPool::forward(TensorP x) {
 TensorP MaxPool::sanity_check(TensorP x) {
     this->out_h = (x->shape->h - kernel) / stride + 1;
     this->out_w = (x->shape->w - kernel) / stride + 1;
-    this->max_indices = (int*) mkl_malloc(x->shape->n * x->shape->c * out_h * out_w * sizeof(int), MALLOC_ALIGN);
+    this->max_indices = (int*) aligned_alloc(MALLOC_ALIGN, x->shape->n * x->shape->c * out_h * out_w * sizeof(int));
     return forward(x);
 }
 
 TensorP MaxPool::backward(TensorP grad, float lr) {
-    float* input_data = (float*) mkl_calloc(input->size, sizeof(float), MALLOC_ALIGN);
+    float* input_data = (float*) aligned_alloc(MALLOC_ALIGN, input->size * sizeof(float));
+    memset(input_data, 0, input->size * sizeof(float));
     TensorP input_grad = TensorP(new Tensor(input_data, new Shape(*(input->shape))));
 
     #pragma omp parallel for simd

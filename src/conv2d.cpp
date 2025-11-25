@@ -1,5 +1,5 @@
 #include "conv2d.h"
-#include "mkl.h"
+#include <cstring>
 #include <omp.h>
 #include "consts.h"
 
@@ -19,7 +19,7 @@ void Conv2d::init_bias(Shape* shape) {
 }
 
 TensorP Conv2d::im2col(TensorP x) {
-    float* col_data = (float*) mkl_malloc(x->shape->n * out_h * out_w * x->shape->c * kernel * kernel * sizeof(float), MALLOC_ALIGN);
+    float* col_data = (float*) aligned_alloc(MALLOC_ALIGN, x->shape->n * out_h * out_w * x->shape->c * kernel * kernel * sizeof(float));
     Shape* col_shape = new Shape(x->shape->n, x->shape->c, kernel*kernel, out_h*out_w);
     TensorP col = TensorP(new Tensor(col_data, col_shape));
 
@@ -42,7 +42,8 @@ TensorP Conv2d::im2col(TensorP x) {
 }
 
 TensorP Conv2d::col2im(TensorP x, Shape* shape) {
-    float* im_data = (float*) mkl_calloc(shape->c * shape->h * shape->w, sizeof(float), MALLOC_ALIGN);
+    float* im_data = (float*) aligned_alloc(MALLOC_ALIGN, shape->c * shape->h * shape->w * sizeof(float));
+    memset(im_data, 0, shape->c * shape->h * shape->w * sizeof(float));
     TensorP im = TensorP(new Tensor(im_data, new Shape(1, shape->c, shape->h, shape->w)));
 
     #pragma omp parallel for simd collapse(5)

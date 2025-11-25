@@ -1,6 +1,7 @@
 #include "cross_entropy.h"
 #include "consts.h"
 #include <cmath>
+#include <cstring>
 
 using namespace lamp;
 
@@ -17,7 +18,8 @@ TensorP CrossEntorpyLoss::backward(TensorP grad, float lr) {
 }
 
 TensorP CrossEntorpyLoss::loss(TensorP pred, TensorP target) {
-    float* loss = (float*) mkl_calloc(pred->shape->n, sizeof(float), MALLOC_ALIGN);
+    float* loss = (float*) aligned_alloc(MALLOC_ALIGN, pred->shape->n * sizeof(float));
+    memset(loss, 0, pred->shape->n * sizeof(float));
 
     #pragma omp parallel for simd collapse(2)
     for (int n = 0; n < pred->shape->n; n++) {

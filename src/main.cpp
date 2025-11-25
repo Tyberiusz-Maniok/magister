@@ -1,6 +1,5 @@
 #include <omp.h>
 #include <cstdio>
-#include "mkl.h"
 #include "rng.h"
 #include "tensor.h"
 #include "conv2d.h"
@@ -15,13 +14,15 @@ using namespace lamp;
 int main() {
 
     printf("Starting...\n");
+    
+    // CRITICAL: Initialize libomptarget BEFORE any parallel regions or target operations
+    // This prevents segfaults from uninitialized PluginManager/mutex
+    int num_devices = omp_get_num_devices();
+    printf("OpenMP Target Devices: %i\n", num_devices);
+    
     #pragma omp parallel master
     {
-        printf("%i\n", omp_get_num_threads());
-        // printf("%i\n", omp_get_num_devices());
-        // omp_set_default_device(2);
-        // printf("%i\n", omp_get_num_devices());
-        // printf("%i\n", omp_get_device_num());
+        printf("OpenMP Threads: %i\n", omp_get_num_threads());
     }
 
     DataLoaderP dl = DataLoaderP(new DataLoader(16));

@@ -1,5 +1,4 @@
 #include "linear.h"
-#include "mkl.h"
 #include <stdexcept>
 #include "consts.h"
 

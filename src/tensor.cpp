@@ -1,11 +1,19 @@
+// CRITICAL ORDER: Include all C++ standard library headers BEFORE CUDA headers
+// to avoid __noinline__ conflicts between libstdc++ and CUDA's host_defines.h
+#include <memory>
+#include <cstring>
+#include <cstdio>
+#include <stdlib.h>
+#include <random>
+#include <string>
+
+// Now safe to include CUDA
+#include <cublas_v2.h>
+
+// Then our headers
 #include "tensor.h"
 #include <omp.h>
-#include <stdlib.h>
-#include "mkl.h"
 #include "consts.h"
-#include <cstring>
-
-#include <cstdio>
 
 using namespace lamp;
 
@@ -32,17 +40,17 @@ Tensor::Tensor(float* data, Shape* shape, int size) : data(data), shape(shape), 
 }
 
 Tensor::Tensor(Tensor& other) : size(other.size), shape(new Shape(*(other.shape))), strides(new Shape(*(other.strides))) {
-    this->data = (float*) mkl_malloc(other.size * sizeof(float), MALLOC_ALIGN);
+    this->data = (float*) aligned_alloc(MALLOC_ALIGN, other.size * sizeof(float));
     std::memcpy(other.data, this->data, other.size * sizeof(float));
 }
 
 Tensor::Tensor(std::shared_ptr<Tensor> other) : size(other->size), shape(new Shape(*(other->shape))), strides(new Shape(*(other->strides))) {
-    this->data = (float*) mkl_malloc(other->size * sizeof(float), MALLOC_ALIGN);
+    this->data = (float*) aligned_alloc(MALLOC_ALIGN, other->size * sizeof(float));
     std::memcpy(other->data, this->data, other->size * sizeof(float));
 }
 
 Tensor::~Tensor() {
-    mkl_free(this->data);
+    free(this->data);
     delete this->shape;
     delete this->strides;
 }
@@ -144,7 +152,11 @@ float Tensor::operator[](int idx) {
 }
 
 float Tensor::dot(Tensor& other) {
-    return cblas_sdot(size, data, 1, other.data, 1);
+    float result = 0.0f;
+    for (int i = 0; i < size; ++i) {
+        result += data[i] * other.data[i];
+    }
+    return result;
 }
 
 std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias, cublasOperation_t transa, cublasOperation_t transb) {
@@ -186,7 +198,7 @@ std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::share
         ldb = k;
     }
 
-    float* result = (float*) mkl_malloc(m * n * sizeof(float), MALLOC_ALIGN);
+    float* result = (float*) aligned_alloc(MALLOC_ALIGN, m * n * sizeof(float));
     float beta = 0;
     float alpha = 1;
     if (bias != nullptr) {
@@ -251,7 +263,7 @@ std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, st
         ldb = k;
     }
 
-    float* result = (float*) mkl_malloc(m * n * other->shape->n * sizeof(float), MALLOC_ALIGN);
+    float* result = (float*) aligned_alloc(MALLOC_ALIGN, m * n * other->shape->n * sizeof(float));
     float beta = 0;
     float alpha = 1;
     if (bias != nullptr) {
@@ -279,7 +291,8 @@ std::shared_ptr<Tensor> Tensor::avg_grad() {
     if (shape->n == 1) {
         return std::shared_ptr<Tensor>(new Tensor(*this));
     }
-    float* result = (float*) mkl_calloc(shape->c * shape->h * shape->w, sizeof(float), MALLOC_ALIGN);
+    float* result = (float*) aligned_alloc(MALLOC_ALIGN, shape->c * shape->h * shape->w * sizeof(float));
+    memset(result, 0, shape->c * shape->h * shape->w * sizeof(float));
 
     #pragma omp parallel for
     for (int i = 0; i < size / shape->n; i++) {
@@ -399,14 +412,15 @@ void Tensor::print() {
 
 std::shared_ptr<Tensor> Tensor::zeros(Shape* shape_) {
     int size_ = accum_size(shape_);
-    float* data_ = (float*) mkl_calloc(size_, sizeof(float), MALLOC_ALIGN);
+    float* data_ = (float*) aligned_alloc(MALLOC_ALIGN, size_ * sizeof(float));
+    memset(data_, 0, size_ * sizeof(float));
 
     return std::shared_ptr<Tensor>(new Tensor(data_, shape_, size_));
 }
 
 std::shared_ptr<Tensor> Tensor::random(Shape* shape_, float low, float high) {
     int size_ = accum_size(shape_);
-    float* data_ = (float*) mkl_malloc(size_ * sizeof(float), MALLOC_ALIGN);
+    float* data_ = (float*) aligned_alloc(MALLOC_ALIGN, size_ * sizeof(float));
     global_rand->populate(size_, data_, low, high);
 
     return std::shared_ptr<Tensor>(new Tensor(data_, shape_, size_));
