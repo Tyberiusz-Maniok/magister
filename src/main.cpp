@@ -1,5 +1,7 @@
 #include <omp.h>
 #include <cstdio>
+#include "cuda_nvhpc_compat.h"
+#include <cuda_runtime.h>
 #include "rng.h"
 #include "tensor.h"
 #include "conv2d.h"
@@ -8,26 +10,28 @@
 #include "data_loader.h"
 #include <string>
 #include "models.h"
+#include "consts.h"
 
 using namespace lamp;
 
 int main() {
 
     printf("Starting...\n");
+    fflush(stdout);
     
-    // CRITICAL: Initialize libomptarget BEFORE any parallel regions or target operations
-    // This prevents segfaults from uninitialized PluginManager/mutex
-    int num_devices = omp_get_num_devices();
-    printf("OpenMP Target Devices: %i\n", num_devices);
+    // CRITICAL: Initialize CUDA context early
+    cudaSetDevice(0);
+    cudaFree(0);  // Force CUDA context initialization
+    printf("CUDA initialized\n");
+    fflush(stdout);
     
-    #pragma omp parallel master
-    {
-        printf("OpenMP Threads: %i\n", omp_get_num_threads());
-    }
-
     DataLoaderP dl = DataLoaderP(new DataLoader(16));
+    printf("DataLoader created\n");
+    fflush(stdout);
 
     Model* m = models::vgg16();
+    printf("Model created\n");
+    fflush(stdout);
     // Model* m = models::resnet18();
     // TensorP x = dl->next_batch()->x;
 
@@ -35,9 +39,15 @@ int main() {
     // TensorP out = m->sanity_check(x);
     // out->print_shape();
 
+    printf("Starting model fit...\n");
+    fflush(stdout);
     m->fit(dl);
+    printf("Model fit completed\n");
+    fflush(stdout);
 
     m->stat_tracker->to_csv("../results/t16.csv");
+    printf("Stats saved\n");
+    fflush(stdout);
 
 
     // DataBatchP db = dl->next_batch();

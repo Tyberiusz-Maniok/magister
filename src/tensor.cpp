@@ -7,8 +7,12 @@
 #include <random>
 #include <string>
 
+// Workaround for CUDA 12.6 + NVHPC 24.9 compatibility
+#include "cuda_nvhpc_compat.h"
+
 // Now safe to include CUDA
 #include <cublas_v2.h>
+#include <cuda_runtime.h>
 
 // Then our headers
 #include "tensor.h"
@@ -205,26 +209,58 @@ std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::share
         Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
         beta = 1;
     }
+    // Allocate device memory using CUDA
+    float* d_tdata;
+    float* d_odata;
+    float* d_result;
+    cudaMalloc(&d_tdata, this->size * sizeof(float));
+    cudaMalloc(&d_odata, other->size * sizeof(float));
+    cudaMalloc(&d_result, m * n * sizeof(float));
+    
+    // Copy data to device
+    cudaMemcpy(d_tdata, this->data, this->size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_odata, other->data, other->size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_result, result, m * n * sizeof(float), cudaMemcpyHostToDevice);
+    
+    // Use CUBLAS with device pointers
     cublasHandle_t handle;
-    cublasCreate(&handle);
-    float* tdata = this->data;
-    float* odata = this->data;
-
-    // #pragma omp target data map(to:tdata[0:this->size], odata[0:other->size]) map(tofrom:result[0:m*n]) device(0)
-    //     #pragma omp target variant dispatch device(0) use_device_ptr(tdata, odata, result)
-    //     #pragma omp dispatch device(0)
-    #pragma omp target data map(to:tdata[0:this->size], odata[0:other->size]) map(tofrom:result[0:m*n]) device(0)
-    {
-        cublasSgemm(handle, transa, transb, m, n, k, &alpha, tdata, lda, odata, ldb, &beta, result, ldc);
+    cublasStatus_t status = cublasCreate(&handle);
+    if (status != CUBLAS_STATUS_SUCCESS) {
+        printf("CUBLAS create failed: %d\n", status);
+        return nullptr;
     }
     
-
-    cublasDestroy(handle);
+    status = cublasSgemm(handle, transa, transb, m, n, k, &alpha, d_tdata, lda, d_odata, ldb, &beta, d_result, ldc);
+    if (status != CUBLAS_STATUS_SUCCESS) {
+        printf("CUBLAS sgemm failed: %d\n", status);
+    }
+    
+    // CRITICAL: Synchronize before destroying handle (CUBLAS ops are async)
+    cudaError_t cuda_status = cudaDeviceSynchronize();
+    if (cuda_status != cudaSuccess) {
+        printf("CUDA sync failed: %s\n", cudaGetErrorString(cuda_status));
+    }
+    
+    status = cublasDestroy(handle);
+    if (status != CUBLAS_STATUS_SUCCESS) {
+        printf("CUBLAS destroy failed: %d\n", status);
+    }
+    
+    // Copy result back to host
+    cudaMemcpy(result, d_result, m * n * sizeof(float), cudaMemcpyDeviceToHost);
+    
+    // Free device memory
+    cudaFree(d_tdata);
+    cudaFree(d_odata);
+    cudaFree(d_result);
 
     return std::shared_ptr<Tensor>(new Tensor(result, new Shape(1, 1, m, n), m*n));
 }
 
 std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias, cublasOperation_t transa, cublasOperation_t transb) {
+    printf("[batched_matmul] Starting - this->size=%d, other->size=%d, batch=%d\n", this->size, other->size, other->shape->n);
+    fflush(stdout);
+    
     // if (transa == CUBLAS_OP_T) {
     //     transa = CUBLAS_OP_N;
     //     transb = CUBLAS_OP_T;
@@ -274,15 +310,79 @@ std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, st
     int in_stride = other->strides->n;
     int out_stride = m * n;
 
+    printf("[batched_matmul] m=%d, n=%d, k=%d, in_stride=%d, out_stride=%d\n", m, n, k, in_stride, out_stride);
+    printf("[batched_matmul] other shape: n=%d, c=%d, h=%d, w=%d\n", 
+           other->shape->n, other->shape->c, other->shape->h, other->shape->w);
+    
+    // BOUNDS CHECK - verify indices won't exceed allocated memory
+    int max_input_offset = in_stride * (other->shape->n - 1) + (k * n);
+    int max_output_offset = out_stride * (other->shape->n - 1) + (m * n);
+    printf("[batched_matmul] BOUNDS CHECK:\n");
+    printf("  Input: allocated=%d, max_access=%d, %s\n", 
+           other->size, max_input_offset, 
+           max_input_offset <= other->size ? "OK" : "OUT OF BOUNDS!");
+    printf("  Output: allocated=%d, max_access=%d, %s\n", 
+           m * n * other->shape->n, max_output_offset,
+           max_output_offset <= m * n * other->shape->n ? "OK" : "OUT OF BOUNDS!");
+    printf("  this->size=%d, needs k*m=%d, %s\n",
+           this->size, k * m,
+           this->size >= k * m ? "OK" : "OUT OF BOUNDS!");
+    fflush(stdout);
+
+    // Allocate device memory using CUDA
+    printf("[batched_matmul] Allocating device memory\n");
+    fflush(stdout);
+    float* d_tdata;
+    float* d_odata;
+    float* d_result;
+    cudaMalloc(&d_tdata, this->size * sizeof(float));
+    cudaMalloc(&d_odata, other->size * sizeof(float));
+    cudaMalloc(&d_result, m * n * other->shape->n * sizeof(float));
+    
+    // Copy data to device
+    printf("[batched_matmul] Copying to device\n");
+    fflush(stdout);
+    cudaMemcpy(d_tdata, this->data, this->size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_odata, other->data, other->size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_result, result, m * n * other->shape->n * sizeof(float), cudaMemcpyHostToDevice);
+    
+    // Use CUBLAS with device pointers
+    printf("[batched_matmul] Creating CUBLAS handle\n");
+    fflush(stdout);
     cublasHandle_t handle;
-    cublasCreate(&handle);
-
-    #pragma omp parallel for
-    for (int i = 0; i < other->shape->n; i++) {
-        cublasSgemm(handle, transa, transb, m, n, k, &alpha, this->data, lda, other->data+(in_stride*i), ldb, &beta, result+(out_stride*i), ldc);
+    cublasStatus_t status = cublasCreate(&handle);
+    if (status != CUBLAS_STATUS_SUCCESS) {
+        printf("CUBLAS create failed: %d\n", status);
+        return nullptr;
     }
-
-    cublasDestroy(handle);
+    
+    // Note: Using sequential loop - CUBLAS calls are async on GPU internally
+    // For true batched operations, consider using cublasSgemmStridedBatched
+    for (int i = 0; i < other->shape->n; i++) {
+        status = cublasSgemm(handle, transa, transb, m, n, k, &alpha, d_tdata, lda, d_odata+(in_stride*i), ldb, &beta, d_result+(out_stride*i), ldc);
+        if (status != CUBLAS_STATUS_SUCCESS) {
+            printf("CUBLAS sgemm failed at iteration %d: %d\n", i, status);
+        }
+    }
+    
+    // CRITICAL: Synchronize before destroying handle (CUBLAS ops are async)
+    cudaError_t cuda_status = cudaDeviceSynchronize();
+    if (cuda_status != cudaSuccess) {
+        printf("CUDA sync failed: %s\n", cudaGetErrorString(cuda_status));
+    }
+    
+    status = cublasDestroy(handle);
+    if (status != CUBLAS_STATUS_SUCCESS) {
+        printf("CUBLAS destroy failed: %d\n", status);
+    }
+    
+    // Copy result back to host
+    cudaMemcpy(result, d_result, m * n * other->shape->n * sizeof(float), cudaMemcpyDeviceToHost);
+    
+    // Free device memory
+    cudaFree(d_tdata);
+    cudaFree(d_odata);
+    cudaFree(d_result);
 
     return std::shared_ptr<Tensor>(new Tensor(result, new Shape(other->shape->n, 1, m, n), m * n * other->shape->n));
 }
