@@ -164,25 +164,7 @@ float Tensor::dot(Tensor& other) {
 }
 
 std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias, cublasOperation_t transa, cublasOperation_t transb) {
-    // if (transa == CUBLAS_OP_T) {
-    //     transa = CUBLAS_OP_N;
-    //     transb = CUBLAS_OP_T;
-    // }
-    // if (transb == CUBLAS_OP_T) {
-    //     transb = CUBLAS_OP_N;
-    //     transa = CUBLAS_OP_T;
-    // }
-    if (transa == CUBLAS_OP_N) {
-        transa = CUBLAS_OP_T;
-    } else {
-        transa = CUBLAS_OP_N;
-    }
-    if (transb == CUBLAS_OP_N) {
-        transb = CUBLAS_OP_T;
-    } else {
-        transb = CUBLAS_OP_N;
-    }
-
+    // Original row-major dimensions
     int m = this->shape->h;
     int k = this->shape->w;
     int n = other->shape->w;
@@ -191,24 +173,31 @@ std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::share
     int ldb = n;
     int ldc = n;
 
-    if (transa == CUBLAS_OP_N) {
+    if (transa == CUBLAS_OP_T) {
         m = k;
         k = this->shape->h;
         lda = m;
     }
-    if (transb == CUBLAS_OP_N) {
+    if (transb == CUBLAS_OP_T) {
         n = other->shape->h;
         ldc = n;
         ldb = k;
     }
 
     float* result = (float*) aligned_alloc(MALLOC_ALIGN, m * n * sizeof(float));
-    float beta = 0;
+    float beta_val = 0;
     float alpha = 1;
     if (bias != nullptr) {
         Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
-        beta = 1;
+        beta_val = 1;
     }
+    
+    // Convert row-major to column-major by swapping operands and dimensions
+    // Row-major: C = op(A) * op(B) becomes Column-major: C^T = op(B)^T * op(A)^T
+    // Swap A<->B, transa<->transb, m<->n, lda<->ldb
+    cublasOperation_t transa_col = transb;
+    cublasOperation_t transb_col = transa;
+    
     // Allocate device memory using CUDA
     float* d_tdata;
     float* d_odata;
@@ -230,7 +219,8 @@ std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::share
         return nullptr;
     }
     
-    status = cublasSgemm(handle, transa, transb, m, n, k, &alpha, d_tdata, lda, d_odata, ldb, &beta, d_result, ldc);
+    // CUBLAS column-major call: swap A<->B, swap m<->n, swap lda<->ldb
+    status = cublasSgemm(handle, transa_col, transb_col, n, m, k, &alpha, d_odata, ldb, d_tdata, lda, &beta_val, d_result, ldc);
     if (status != CUBLAS_STATUS_SUCCESS) {
         printf("CUBLAS sgemm failed: %d\n", status);
     }
@@ -258,28 +248,7 @@ std::shared_ptr<Tensor> Tensor::matmul(std::shared_ptr<Tensor> other, std::share
 }
 
 std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, std::shared_ptr<Tensor> bias, cublasOperation_t transa, cublasOperation_t transb) {
-    printf("[batched_matmul] Starting - this->size=%d, other->size=%d, batch=%d\n", this->size, other->size, other->shape->n);
-    fflush(stdout);
-    
-    // if (transa == CUBLAS_OP_T) {
-    //     transa = CUBLAS_OP_N;
-    //     transb = CUBLAS_OP_T;
-    // }
-    // if (transb == CUBLAS_OP_T) {
-    //     transb = CUBLAS_OP_N;
-    //     transa = CUBLAS_OP_T;
-    // }
-    if (transa == CUBLAS_OP_N) {
-        transa = CUBLAS_OP_T;
-    } else {
-        transa = CUBLAS_OP_N;
-    }
-    if (transb == CUBLAS_OP_N) {
-        transb = CUBLAS_OP_T;
-    } else {
-        transb = CUBLAS_OP_N;
-    }
-
+    // Original row-major dimensions
     int m = this->shape->h;
     int k = this->shape->w;
     int n = other->shape->w;
@@ -288,50 +257,35 @@ std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, st
     int ldb = n;
     int ldc = n;
 
-    if (transa == CUBLAS_OP_N) {
+    if (transa == CUBLAS_OP_T) {
         m = k;
         k = this->shape->h;
         lda = m;
     }
-    if (transb == CUBLAS_OP_N) {
+    if (transb == CUBLAS_OP_T) {
         n = other->shape->h;
         ldc = n;
         ldb = k;
     }
 
     float* result = (float*) aligned_alloc(MALLOC_ALIGN, m * n * other->shape->n * sizeof(float));
-    float beta = 0;
+    float beta_val = 0;
     float alpha = 1;
     if (bias != nullptr) {
         Tensor::bias_cpy(bias->data, result, bias->size, this->shape->n);
-        beta = 1;
+        beta_val = 1;
     }
 
     int in_stride = other->strides->n;
     int out_stride = m * n;
-
-    printf("[batched_matmul] m=%d, n=%d, k=%d, in_stride=%d, out_stride=%d\n", m, n, k, in_stride, out_stride);
-    printf("[batched_matmul] other shape: n=%d, c=%d, h=%d, w=%d\n", 
-           other->shape->n, other->shape->c, other->shape->h, other->shape->w);
     
-    // BOUNDS CHECK - verify indices won't exceed allocated memory
-    int max_input_offset = in_stride * (other->shape->n - 1) + (k * n);
-    int max_output_offset = out_stride * (other->shape->n - 1) + (m * n);
-    printf("[batched_matmul] BOUNDS CHECK:\n");
-    printf("  Input: allocated=%d, max_access=%d, %s\n", 
-           other->size, max_input_offset, 
-           max_input_offset <= other->size ? "OK" : "OUT OF BOUNDS!");
-    printf("  Output: allocated=%d, max_access=%d, %s\n", 
-           m * n * other->shape->n, max_output_offset,
-           max_output_offset <= m * n * other->shape->n ? "OK" : "OUT OF BOUNDS!");
-    printf("  this->size=%d, needs k*m=%d, %s\n",
-           this->size, k * m,
-           this->size >= k * m ? "OK" : "OUT OF BOUNDS!");
-    fflush(stdout);
+    // Convert row-major to column-major by swapping operands and dimensions
+    // Row-major: C = op(A) * op(B) becomes Column-major: C^T = op(B)^T * op(A)^T
+    // Swap A<->B, transa<->transb, m<->n, lda<->ldb
+    cublasOperation_t transa_col = transb;
+    cublasOperation_t transb_col = transa;
 
     // Allocate device memory using CUDA
-    printf("[batched_matmul] Allocating device memory\n");
-    fflush(stdout);
     float* d_tdata;
     float* d_odata;
     float* d_result;
@@ -340,15 +294,11 @@ std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, st
     cudaMalloc(&d_result, m * n * other->shape->n * sizeof(float));
     
     // Copy data to device
-    printf("[batched_matmul] Copying to device\n");
-    fflush(stdout);
     cudaMemcpy(d_tdata, this->data, this->size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_odata, other->data, other->size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_result, result, m * n * other->shape->n * sizeof(float), cudaMemcpyHostToDevice);
     
     // Use CUBLAS with device pointers
-    printf("[batched_matmul] Creating CUBLAS handle\n");
-    fflush(stdout);
     cublasHandle_t handle;
     cublasStatus_t status = cublasCreate(&handle);
     if (status != CUBLAS_STATUS_SUCCESS) {
@@ -359,7 +309,8 @@ std::shared_ptr<Tensor> Tensor::batched_matmul(std::shared_ptr<Tensor> other, st
     // Note: Using sequential loop - CUBLAS calls are async on GPU internally
     // For true batched operations, consider using cublasSgemmStridedBatched
     for (int i = 0; i < other->shape->n; i++) {
-        status = cublasSgemm(handle, transa, transb, m, n, k, &alpha, d_tdata, lda, d_odata+(in_stride*i), ldb, &beta, d_result+(out_stride*i), ldc);
+        // CUBLAS column-major call: swap A<->B, swap m<->n, swap lda<->ldb
+        status = cublasSgemm(handle, transa_col, transb_col, n, m, k, &alpha, d_odata+(in_stride*i), ldb, d_tdata, lda, &beta_val, d_result+(out_stride*i), ldc);
         if (status != CUBLAS_STATUS_SUCCESS) {
             printf("CUBLAS sgemm failed at iteration %d: %d\n", i, status);
         }
