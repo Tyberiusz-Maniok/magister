@@ -20,6 +20,7 @@ int main() {
     fflush(stdout);
     
     // CRITICAL: Initialize CUDA context early
+    omp_set_default_device(0);
     cudaSetDevice(0);
     cudaFree(0);  // Force CUDA context initialization
     printf("CUDA initialized\n");
@@ -45,7 +46,7 @@ int main() {
     printf("Model fit completed\n");
     fflush(stdout);
 
-    m->stat_tracker->to_csv("../results/t16.csv");
+    m->stat_tracker->to_csv("../results/gemm_only_omp.csv");
     printf("Stats saved\n");
     fflush(stdout);
 
