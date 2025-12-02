@@ -1,4 +1,5 @@
 #include "activations.h"
+#include <omp.h>
 
 using namespace lamp;
 
@@ -15,21 +16,25 @@ void Activation::backward(TensorP x) {
 void Activation::f_identity(TensorP x) {}
 
 void Activation::f_relu(TensorP x) {
-    #pragma omp parallel for
-    for (int i = 0; i < x->size; i++) {
-        if (*(x->data+i) < 0) {
-            *(x->data+i) = 0;
+    float* dev_ptr = x->d_data;
+    int data_size = x->size;
+    #pragma omp target teams distribute parallel for is_device_ptr(dev_ptr)
+    for (int i = 0; i < data_size; i++) {
+        if (*(dev_ptr+i) < 0) {
+            *(dev_ptr+i) = 0;
         }
     }
 }
 
 void Activation::f_relu_backward(TensorP x) {
-    #pragma omp parallel for
-    for (int i = 0; i < x->size; i++) {
-        if (*(x->data+i) < 0) {
-            *(x->data+i) = 0;
+    float* dev_ptr = x->d_data;
+    int data_size = x->size;
+    #pragma omp target teams distribute parallel for is_device_ptr(dev_ptr)
+    for (int i = 0; i < data_size; i++) {
+        if (*(dev_ptr+i) < 0) {
+            *(dev_ptr+i) = 0;
         } else {
-            *(x->data+i) = 1;
+            *(dev_ptr+i) = 1;
         }
     }
 }

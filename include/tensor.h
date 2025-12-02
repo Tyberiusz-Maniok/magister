@@ -25,7 +25,8 @@ class Tensor {
     private:
         void set_strides(Shape* shape);
     public:
-        float* data;
+        float* data;      // Host pointer
+        float* d_data;    // Device pointer (via omp_target_alloc)
         Shape* shape;
         int size;
         Shape* strides;

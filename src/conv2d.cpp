@@ -23,14 +23,33 @@ TensorP Conv2d::im2col(TensorP x) {
     Shape* col_shape = new Shape(x->shape->n, x->shape->c, kernel*kernel, out_h*out_w);
     TensorP col = TensorP(new Tensor(col_data, col_shape));
 
-    #pragma omp parallel for simd collapse(6)
-    for (int n = 0; n < x->shape->n; n++) {
-        for (int c = 0; c < x->shape->c; c++) {
+    // Extract values for GPU kernel (NCHW format)
+    int x_n = x->shape->n;
+    int x_c = x->shape->c;
+    int x_stride_n = x->strides->n;
+    int x_stride_c = x->strides->c;
+    int x_stride_h = x->strides->h;
+    int x_stride_w = x->strides->w;
+    
+    int col_stride_n = col->strides->n;
+    int col_stride_c = col->strides->c;
+    int col_stride_h = col->strides->h;
+    int col_stride_w = col->strides->w;
+    
+    float* x_dev = x->d_data;
+    float* col_dev = col->d_data;
+    
+    #pragma omp target teams distribute parallel for simd collapse(6) is_device_ptr(x_dev, col_dev)
+    for (int n = 0; n < x_n; n++) {
+        for (int c = 0; c < x_c; c++) {
             for (int h = 0; h < out_h; h++) {
                 for (int w = 0; w < out_w; w++) {
                     for (int kh = 0; kh < kernel; kh++) {
                         for (int kw = 0; kw < kernel; kw++) {
-                            *(col_data+col->flat_index(n, c, kh * kernel + kw, h * out_w + w)) = x->at(n, c, h * stride + kh, w * stride + kw);
+                            // Inline index calculations (NCHW format)
+                            int col_idx = n * col_stride_n + c * col_stride_c + (kh * kernel + kw) * col_stride_h + (h * out_w + w) * col_stride_w;
+                            int x_idx = n * x_stride_n + c * x_stride_c + (h * stride + kh) * x_stride_h + (w * stride + kw) * x_stride_w;
+                            *(col_dev+col_idx) = *(x_dev+x_idx);
                         }
                     }
                 }
@@ -46,13 +65,31 @@ TensorP Conv2d::col2im(TensorP x, Shape* shape) {
     memset(im_data, 0, shape->c * shape->h * shape->w * sizeof(float));
     TensorP im = TensorP(new Tensor(im_data, new Shape(1, shape->c, shape->h, shape->w)));
 
-    #pragma omp parallel for simd collapse(5)
+    // Extract stride values for GPU kernel (NCHW format)
+    int x_stride_n = x->strides->n;
+    int x_stride_c = x->strides->c;
+    int x_stride_h = x->strides->h;
+    int x_stride_w = x->strides->w;
+    
+    int im_stride_n = im->strides->n;
+    int im_stride_c = im->strides->c;
+    int im_stride_h = im->strides->h;
+    int im_stride_w = im->strides->w;
+    
+    float* x_dev = x->d_data;
+    float* im_dev = im->d_data;
+    
+    #pragma omp target teams distribute parallel for collapse(5) is_device_ptr(x_dev, im_dev)
     for (int c = 0; c < in_c; c++) {
         for (int h = 0; h < out_h; h++) {
             for (int w = 0; w < out_w; w++) {
                 for (int kh = 0; kh < kernel; kh++) {
                     for (int kw = 0; kw < kernel; kw++) {
-                        *(im_data+im->flat_index(0, c, h * stride + kh, w * stride + kw)) += x->at(0, c, kh * kernel + kw, h * out_w + w);
+                        // Inline index calculations (NCHW format)
+                        int im_idx = 0 * im_stride_n + c * im_stride_c + (h * stride + kh) * im_stride_h + (w * stride + kw) * im_stride_w;
+                        int x_idx = 0 * x_stride_n + c * x_stride_c + (kh * kernel + kw) * x_stride_h + (h * out_w + w) * x_stride_w;
+                        #pragma omp atomic
+                        *(im_dev+im_idx) += *(x_dev+x_idx);
                     }
                 }
             }

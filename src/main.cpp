@@ -23,10 +23,8 @@ int main() {
     omp_set_default_device(0);
     cudaSetDevice(0);
     cudaFree(0);  // Force CUDA context initialization
-    printf("CUDA initialized\n");
-    fflush(stdout);
     
-    DataLoaderP dl = DataLoaderP(new DataLoader(16));
+    DataLoaderP dl = DataLoaderP(new DataLoader(4));  // Batch size 4 for 4GB GPU
     printf("DataLoader created\n");
     fflush(stdout);
 
@@ -46,7 +44,7 @@ int main() {
     printf("Model fit completed\n");
     fflush(stdout);
 
-    m->stat_tracker->to_csv("../results/gemm_only_omp.csv");
+    m->stat_tracker->to_csv("../results/all_omp.csv");
     printf("Stats saved\n");
     fflush(stdout);
 
